@@ -9,6 +9,7 @@ import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
+import { parseJson } from '@/lib/http'
 import type { Article, ArticleStatus } from '@/types'
 
 type Filter = 'all' | 'draft' | 'generated' | 'published'
@@ -67,7 +68,7 @@ export default function ArticlesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ article_id: article.id })
       })
-      const json = await res.json()
+      const json = await parseJson<{ success: boolean; wp_url?: string; error?: string }>(res)
       if (json.success) {
         toast.success('Artikel berhasil dipublish!')
         setArticles((prev) =>
@@ -82,7 +83,7 @@ export default function ArticlesPage() {
       }
     } catch (err) {
       console.error(err)
-      toast.error('Gagal publish artikel')
+      toast.error(err instanceof Error ? err.message : 'Gagal publish artikel')
     } finally {
       setPublishingId(null)
     }
