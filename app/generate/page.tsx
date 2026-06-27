@@ -9,7 +9,8 @@ import {
   CheckCircle2,
   XCircle,
   Circle,
-  RotateCcw
+  RotateCcw,
+  Clock
 } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
@@ -20,10 +21,10 @@ import type { Article, Keyword } from '@/types'
 type StepStatus = 'pending' | 'loading' | 'done' | 'error'
 
 const STEP_LABELS = [
-  '🔍 Generate Outline',
-  '✍️ Generate Artikel (2000 kata)',
-  '🏷️ Generate Meta SEO',
-  '💾 Simpan ke Database'
+  'Generate Outline',
+  'Generate Artikel (2000 kata)',
+  'Generate Meta SEO',
+  'Simpan ke Database'
 ]
 
 // Estimated time (ms) at which each step visually starts, while the single
@@ -179,7 +180,7 @@ function GenerateContent() {
         subtitle="Pipeline otomatis: Outline → Artikel → Meta SEO"
       />
 
-      <div className="mx-auto max-w-3xl space-y-6 p-8">
+      <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8">
         {/* Result view */}
         {result ? (
           <Card>
@@ -314,8 +315,9 @@ function GenerateContent() {
                 <Sparkles className="h-4 w-4" />
                 {generating ? 'Sedang Generate...' : 'Generate Artikel'}
               </Button>
-              <p className="mt-2 text-center text-xs text-gray-400">
-                ⏱ Estimasi waktu: 30-60 detik
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-gray-400">
+                <Clock className="h-3.5 w-3.5" />
+                Estimasi waktu: 30-60 detik
               </p>
             </div>
           </>

@@ -154,7 +154,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
     return (
       <>
         <Header title="Detail Artikel" />
-        <div className="p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           <Card>
             <p className="text-sm text-gray-500">Artikel tidak ditemukan.</p>
             <div className="mt-4">
@@ -175,7 +175,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
     <>
       <Header title={article.title} subtitle={`Keyword: ${article.keyword}`} />
 
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         {/* Top action bar */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <Button variant="ghost" onClick={() => router.push('/articles')}>

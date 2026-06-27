@@ -101,7 +101,7 @@ export default function KeywordsPage() {
         subtitle="Kelola dan generate keyword teknologi untuk artikel"
       />
 
-      <div className="space-y-8 p-8">
+      <div className="space-y-6 p-4 sm:p-6 lg:space-y-8 lg:p-8">
         <div className="flex items-center justify-end">
           <Button variant="primary" onClick={() => setModalOpen(true)}>
             <Plus className="h-4 w-4" />
