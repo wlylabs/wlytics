@@ -74,5 +74,19 @@ Buka http://localhost:3000
 - **Supabase**: https://supabase.com
 - **WordPress**: Settings → Application Passwords
 
+## 🧠 Model AI
+
+Default model (bisa dioverride via env, tanpa ubah kode):
+
+| Peran | Default | Env override |
+| --- | --- | --- |
+| Groq (besar) | `openai/gpt-oss-120b` | `GROQ_MODEL` |
+| Groq (cepat) | `openai/gpt-oss-20b` | `GROQ_FAST_MODEL` |
+| Gemini | `gemini-flash-latest` | `GEMINI_MODEL` |
+
+Pemanggilan LLM otomatis retry (exponential backoff) saat kena rate limit / 5xx,
+dan akan memberi pesan jelas jika API key belum diset. Kalau Groq/Gemini
+mendeprecate model lagi, cukup ganti nilai env di atas.
+
 ## 📄 License
 MIT
