@@ -11,6 +11,7 @@ import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Loader from '@/components/ui/Loader'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import { parseJson } from '@/lib/http'
 
 const META_TITLE_LIMIT = 60
 const META_DESC_LIMIT = 155
@@ -171,7 +172,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ article_id: article.id })
       })
-      const json = await res.json()
+      const json = await parseJson<{ success: boolean; wp_url?: string; error?: string }>(res)
       if (json.success) {
         toast.success('Artikel berhasil dipublish!')
         setArticle((prev) =>
@@ -182,7 +183,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
       }
     } catch (err) {
       console.error(err)
-      toast.error('Gagal publish artikel')
+      toast.error(err instanceof Error ? err.message : 'Gagal publish artikel')
     } finally {
       setPublishing(false)
     }
