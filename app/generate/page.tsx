@@ -17,6 +17,11 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Loader from '@/components/ui/Loader'
 import type { Article, Keyword } from '@/types'
+import {
+  ARTICLE_TYPES,
+  DEFAULT_ARTICLE_TYPE,
+  type ArticleTypeId
+} from '@/lib/articleTypes'
 
 type StepStatus = 'pending' | 'loading' | 'done' | 'error'
 
@@ -52,6 +57,7 @@ function GenerateContent() {
   const [keywords, setKeywords] = useState<Keyword[]>([])
   const [loadingKeywords, setLoadingKeywords] = useState(true)
   const [selectedId, setSelectedId] = useState('')
+  const [articleType, setArticleType] = useState<ArticleTypeId>(DEFAULT_ARTICLE_TYPE)
 
   const [generating, setGenerating] = useState(false)
   const [steps, setSteps] = useState<StepStatus[]>(['pending', 'pending', 'pending', 'pending'])
@@ -127,7 +133,8 @@ function GenerateContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           keyword_id: selectedKeyword.id,
-          keyword: selectedKeyword.keyword
+          keyword: selectedKeyword.keyword,
+          article_type: articleType
         })
       })
 
@@ -258,6 +265,41 @@ function GenerateContent() {
                   )}
                 </>
               )}
+            </Card>
+
+            {/* Article type selector */}
+            <Card title="Jenis Artikel">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {ARTICLE_TYPES.map((type) => {
+                  const isSelected = articleType === type.id
+                  return (
+                    <button
+                      key={type.id}
+                      type="button"
+                      onClick={() => setArticleType(type.id)}
+                      disabled={generating}
+                      aria-pressed={isSelected}
+                      className={`rounded-lg border p-4 text-left transition-all duration-150 active:scale-[0.99] disabled:opacity-50 ${
+                        isSelected
+                          ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-gray-900">{type.label}</span>
+                        <span
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                            isSelected ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {type.wordTarget}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">{type.description}</p>
+                    </button>
+                  )
+                })}
+              </div>
             </Card>
 
             {/* Pipeline progress */}

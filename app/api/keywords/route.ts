@@ -21,7 +21,7 @@ export async function GET() {
 
 export async function POST() {
   try {
-    const raw = await groqComplete(PROMPTS.keyword_research)
+    const raw = await groqComplete(PROMPTS.keyword_research())
 
     const match = raw.match(/\[[\s\S]*\]/)
     if (!match) throw new Error('Failed to parse keyword JSON from model response')

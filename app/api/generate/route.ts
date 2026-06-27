@@ -2,17 +2,20 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { groqComplete, groqFast } from '@/lib/groq'
 import { geminiComplete } from '@/lib/gemini'
 import { PROMPTS } from '@/lib/prompts'
+import { getArticleType } from '@/lib/articleTypes'
 
 export const dynamic = 'force-dynamic'
 
 // Streams newline-delimited JSON (NDJSON) events so the client can show real
 // per-step progress for the outline -> article -> meta -> save pipeline.
 export async function POST(req: Request) {
-  const { keyword_id, keyword } = (await req.json()) as {
+  const { keyword_id, keyword, article_type } = (await req.json()) as {
     keyword_id: string
     keyword: string
+    article_type?: string
   }
 
+  const type = getArticleType(article_type)
   const encoder = new TextEncoder()
 
   const stream = new ReadableStream({
@@ -29,13 +32,13 @@ export async function POST(req: Request) {
           .from('keywords')
           .update({ status: 'in_progress' })
           .eq('id', keyword_id)
-        const outline = await groqComplete(PROMPTS.generate_outline(keyword))
+        const outline = await groqComplete(PROMPTS.generate_outline(keyword, type))
         send({ type: 'step', index: 0, status: 'done' })
 
         // Step 2: Article
         current = 1
         send({ type: 'step', index: 1, status: 'loading' })
-        const content = await geminiComplete(PROMPTS.generate_article(keyword, outline))
+        const content = await geminiComplete(PROMPTS.generate_article(keyword, outline, type))
         send({ type: 'step', index: 1, status: 'done' })
 
         // Step 3: Meta
