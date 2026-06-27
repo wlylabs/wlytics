@@ -1,3 +1,5 @@
+import type { ArticleTypeConfig } from '@/lib/articleTypes'
+
 // Inject the live date so the model writes for the current year instead of
 // defaulting to its training-era year (e.g. 2024).
 function today() {
@@ -33,31 +35,29 @@ Output HANYA JSON array tanpa teks lain:
 ]`
   },
 
-  generate_outline: (keyword: string) => {
+  generate_outline: (keyword: string, type: ArticleTypeConfig) => {
     const { year } = today()
     return `
 Kamu adalah SEO content strategist teknologi Indonesia.
 Tahun sekarang: ${year}. Buat outline yang relevan dengan kondisi terkini ${year}.
+Jenis artikel: ${type.label} — ${type.description}.
 Buat outline artikel untuk keyword: "${keyword}"
 
 Aturan:
 - 1 H1 mengandung keyword, max 65 karakter
-- 4-6 H2 sebagai section utama
-- Setiap H2 punya 2-3 H3
-- Bagian FAQ 5 pertanyaan di akhir
-- Tandai [AFFILIATE_1] di H2 ke-2
-- Tandai [AFFILIATE_2] di H2 ke-4
-- Tandai [CTA_BOX] sebelum kesimpulan
+- Struktur: ${type.outline}
+- ${type.extras}
 - Jika menyebut tahun, gunakan ${year} (bukan tahun lampau)
 
 Output dalam format markdown.`
   },
 
-  generate_article: (keyword: string, outline: string) => {
+  generate_article: (keyword: string, outline: string, type: ArticleTypeConfig) => {
     const { year, tanggal } = today()
     return `
 Kamu adalah penulis artikel teknologi profesional Indonesia.
 Tanggal hari ini: ${tanggal}. Tulis seolah-olah ditulis pada tahun ${year}.
+Jenis artikel: ${type.label} — ${type.description}.
 
 KEYWORD UTAMA: ${keyword}
 OUTLINE:
@@ -75,7 +75,7 @@ ATURAN:
    tahun yang sudah lewat (mis. 2023/2024) seolah-olah masa kini.
 
 TONE: Informatif, friendly
-PANJANG: 1800-2200 kata
+PANJANG: ${type.panjang}
 HINDARI: kata "kami", "artikel ini akan", pembuka klise
 
 Tulis artikel sekarang:`
