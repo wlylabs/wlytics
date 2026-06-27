@@ -23,6 +23,7 @@ export async function publishToBlogger(post: {
 }) {
   // Convert markdown ke HTML sederhana
   const htmlContent = post.content
+    .replace(/^# .+\n/, '') // hapus H1 pertama (judul sudah ada di field title)
     .replace(/## (.*)/g, '<h2>$1</h2>')
     .replace(/### (.*)/g, '<h3>$1</h3>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
