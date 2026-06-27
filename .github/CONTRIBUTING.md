@@ -1,6 +1,6 @@
 # Contributing Guide
 
-Terima kasih sudah tertarik berkontribusi ke **AI Content Farm Dashboard** 🎉
+Terima kasih sudah tertarik berkontribusi ke **wlytics** 🎉
 
 Dokumen ini menjelaskan cara berkontribusi dengan rapi agar mudah di-review dan di-merge.
 

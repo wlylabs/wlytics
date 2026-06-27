@@ -73,7 +73,7 @@ export default function Sidebar() {
         </button>
         <div className="flex items-center gap-2 font-semibold text-gray-900">
           <Bot className="h-5 w-5 text-indigo-600" />
-          <span>Content Farm</span>
+          <span>wlytics</span>
         </div>
       </div>
 
@@ -81,7 +81,7 @@ export default function Sidebar() {
       <aside className="fixed left-0 top-0 z-30 hidden h-screen w-60 flex-col bg-gray-900 text-gray-300 lg:flex">
         <div className="flex h-16 items-center gap-2 border-b border-gray-800 px-6 text-lg font-semibold text-white">
           <Bot className="h-6 w-6 text-indigo-400" />
-          <span>Content Farm</span>
+          <span>wlytics</span>
         </div>
         {navLinks}
       </aside>
@@ -98,7 +98,7 @@ export default function Sidebar() {
             <div className="flex h-14 items-center justify-between border-b border-gray-800 px-4">
               <div className="flex items-center gap-2 font-semibold text-white">
                 <Bot className="h-5 w-5 text-indigo-400" />
-                <span>Content Farm</span>
+                <span>wlytics</span>
               </div>
               <button
                 type="button"

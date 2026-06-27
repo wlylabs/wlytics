@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Content Farm",
+  title: "wlytics",
   description: "AI-powered content pipeline for tech articles",
 };
 

@@ -61,7 +61,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <>
-        <Header title="Dashboard" subtitle="Overview performa content farm kamu" />
+        <Header title="Dashboard" subtitle="Overview performa wlytics kamu" />
         <Loader text="Memuat dashboard..." />
       </>
     )
@@ -92,7 +92,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Header title="Dashboard" subtitle="Overview performa content farm kamu" />
+      <Header title="Dashboard" subtitle="Overview performa wlytics kamu" />
 
       <div className="space-y-6 p-4 sm:p-6 lg:space-y-8 lg:p-8">
         {/* Stats cards */}
