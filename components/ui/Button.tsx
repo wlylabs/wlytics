@@ -37,9 +37,9 @@ export default function Button({
   return (
     <button
       disabled={isDisabled}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${variantClasses[variant]} ${sizeClasses[size]} ${
-        isDisabled ? 'opacity-50 cursor-not-allowed' : ''
-      } ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${
+        isDisabled ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
+      } ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}
     >
       {loading && <Loader2 className="h-4 w-4 animate-spin" />}

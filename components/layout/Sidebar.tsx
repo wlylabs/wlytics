@@ -44,13 +44,17 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             href={href}
             onClick={onNavigate}
             aria-current={isActive ? 'page' : undefined}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 active:scale-[0.98] ${
               isActive
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-indigo-600 text-white shadow-sm'
                 : 'text-gray-300 hover:bg-gray-800 hover:text-white'
             }`}
           >
-            <Icon className="h-5 w-5 shrink-0" />
+            <Icon
+              className={`h-5 w-5 shrink-0 transition-transform duration-150 ${
+                isActive ? '' : 'group-hover:scale-110'
+              }`}
+            />
             <span>{label}</span>
           </Link>
         )
@@ -78,9 +82,9 @@ export default function Sidebar() {
           </Dialog.Trigger>
 
           <Dialog.Portal>
-            <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 lg:hidden" />
+            <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out data-[state=open]:fade-in lg:hidden" />
             <Dialog.Content
-              className="fixed left-0 top-0 z-50 flex h-full w-64 max-w-[82%] flex-col bg-gray-900 text-gray-300 focus:outline-none lg:hidden"
+              className="fixed left-0 top-0 z-50 flex h-full w-64 max-w-[82%] flex-col bg-gray-900 text-gray-300 duration-200 focus:outline-none data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left lg:hidden"
               aria-label="Menu navigasi"
             >
               <div className="flex h-14 items-center justify-between border-b border-gray-800 px-4">
