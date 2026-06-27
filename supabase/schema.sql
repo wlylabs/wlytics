@@ -26,10 +26,18 @@ create table if not exists articles (
   status text default 'draft' check (status in ('draft','generated','reviewed','published')),
   wp_post_id integer,
   wp_url text,
+  blogger_post_id text,
+  blogger_url text,
+  blogger_published_at timestamptz,
   word_count integer default 0,
   created_at timestamptz default now(),
   published_at timestamptz
 );
+
+-- Migration for existing databases: add Blogger columns if missing.
+alter table articles add column if not exists blogger_post_id text;
+alter table articles add column if not exists blogger_url text;
+alter table articles add column if not exists blogger_published_at timestamptz;
 
 -- Analytics table
 create table if not exists analytics (
