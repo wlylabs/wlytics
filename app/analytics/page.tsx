@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
@@ -12,6 +12,16 @@ function formatDate(value: string) {
     day: 'numeric',
     month: 'short',
     year: 'numeric'
+  })
+}
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   })
 }
 
@@ -58,7 +68,20 @@ export default function AnalyticsPage() {
     const draft = articles.filter((a) => a.status === 'draft').length
     const keywordsUsed = keywords.filter((k) => k.status === 'done').length
     const keywordsLeft = keywords.filter((k) => k.status === 'unused').length
-    return { published, generated, draft, keywordsUsed, keywordsLeft, total: articles.length }
+    const wpPublished = articles.filter((a) => a.wp_url).length
+    const bloggerPublished = articles.filter((a) => a.blogger_url).length
+    const notPublished = articles.filter((a) => !a.wp_url && !a.blogger_url).length
+    return {
+      published,
+      generated,
+      draft,
+      keywordsUsed,
+      keywordsLeft,
+      wpPublished,
+      bloggerPublished,
+      notPublished,
+      total: articles.length
+    }
   }, [articles, keywords])
 
   const sortedArticles = useMemo(
@@ -72,6 +95,19 @@ export default function AnalyticsPage() {
   const usedKeywords = useMemo(
     () => keywords.filter((k) => k.status === 'done'),
     [keywords]
+  )
+
+  const recentBloggerPosts = useMemo(
+    () =>
+      articles
+        .filter((a) => a.blogger_url)
+        .sort(
+          (a, b) =>
+            new Date(b.blogger_published_at ?? b.created_at).getTime() -
+            new Date(a.blogger_published_at ?? a.created_at).getTime()
+        )
+        .slice(0, 5),
+    [articles]
   )
 
   if (loading) {
@@ -118,6 +154,52 @@ export default function AnalyticsPage() {
           ))}
         </div>
 
+        {/* Platform stats */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Card>
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                <Globe className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">WordPress</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.wpPublished}
+                  <span className="ml-1 text-sm font-normal text-gray-400">published</span>
+                </p>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
+                <Rss className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Blogger</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.bloggerPublished}
+                  <span className="ml-1 text-sm font-normal text-gray-400">published</span>
+                </p>
+              </div>
+            </div>
+          </Card>
+          <Card>
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+                <Upload className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Belum publish</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.notPublished}
+                  <span className="ml-1 text-sm font-normal text-gray-400">artikel</span>
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
         {/* Status breakdown */}
         <Card title="Status Breakdown">
           <div className="space-y-4">
@@ -154,7 +236,8 @@ export default function AnalyticsPage() {
                     <th className="pb-3 pr-4 font-medium">Status</th>
                     <th className="pb-3 pr-4 font-medium">Word Count</th>
                     <th className="pb-3 pr-4 font-medium">Tanggal</th>
-                    <th className="pb-3 font-medium">WordPress URL</th>
+                    <th className="pb-3 pr-4 font-medium">WordPress</th>
+                    <th className="pb-3 font-medium">Blogger</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -167,13 +250,28 @@ export default function AnalyticsPage() {
                       </td>
                       <td className="py-3 pr-4 text-gray-500">{article.word_count}</td>
                       <td className="py-3 pr-4 text-gray-500">{formatDate(article.created_at)}</td>
-                      <td className="py-3">
+                      <td className="py-3 pr-4">
                         {article.wp_url ? (
                           <a
                             href={article.wp_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-700"
+                          >
+                            Lihat
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
+                      <td className="py-3">
+                        {article.blogger_url ? (
+                          <a
+                            href={article.blogger_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-medium text-orange-600 hover:text-orange-700"
                           >
                             Lihat
                             <ExternalLink className="h-3.5 w-3.5" />
@@ -201,15 +299,61 @@ export default function AnalyticsPage() {
                   <p className="mt-1 text-xs text-gray-500">
                     {article.keyword} · {article.word_count} kata · {formatDate(article.created_at)}
                   </p>
-                  {article.wp_url && (
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                    {article.wp_url && (
+                      <a
+                        href={article.wp_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                      >
+                        <Globe className="h-3.5 w-3.5" /> WordPress
+                      </a>
+                    )}
+                    {article.blogger_url && (
+                      <a
+                        href={article.blogger_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700"
+                      >
+                        <Rss className="h-3.5 w-3.5" /> Blogger
+                      </a>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        {/* Recent Blogger posts */}
+        <Card title="Recent Blogger Posts">
+          {recentBloggerPosts.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-500">
+              Belum ada artikel yang dipublish ke Blogger.
+            </p>
+          ) : (
+            <ul className="divide-y divide-gray-50">
+              {recentBloggerPosts.map((article) => (
+                <li
+                  key={article.id}
+                  className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-gray-900">{article.title}</p>
+                    <p className="mt-0.5 text-xs text-gray-500">
+                      {formatDateTime(article.blogger_published_at ?? article.created_at)}
+                    </p>
+                  </div>
+                  {article.blogger_url && (
                     <a
-                      href={article.wp_url}
+                      href={article.blogger_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                      className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700"
                     >
-                      Lihat di WordPress
-                      <ExternalLink className="h-3.5 w-3.5" />
+                      Lihat <ExternalLink className="h-3.5 w-3.5" />
                     </a>
                   )}
                 </li>
