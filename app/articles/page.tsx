@@ -102,7 +102,7 @@ export default function ArticlesPage() {
             <button
               key={f.value}
               onClick={() => setFilter(f.value)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 active:scale-95 ${
                 filter === f.value
                   ? 'bg-indigo-600 text-white'
                   : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
