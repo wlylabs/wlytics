@@ -25,6 +25,9 @@ export interface Article {
   status: ArticleStatus
   wp_post_id?: number
   wp_url?: string
+  blogger_post_id?: string
+  blogger_url?: string
+  blogger_published_at?: string
   word_count: number
   created_at: string
   published_at?: string
