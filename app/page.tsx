@@ -6,6 +6,7 @@ import {
   FileText,
   CheckCircle,
   Search,
+  Sparkles,
   type LucideIcon
 } from 'lucide-react'
 import Header from '@/components/layout/Header'
@@ -93,9 +94,9 @@ export default function DashboardPage() {
     <>
       <Header title="Dashboard" subtitle="Overview performa content farm kamu" />
 
-      <div className="space-y-8 p-8">
+      <div className="space-y-6 p-4 sm:p-6 lg:space-y-8 lg:p-8">
         {/* Stats cards */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:gap-6">
           {statCards.map(({ label, value, icon: Icon, color }) => (
             <Card key={label}>
               <div className="flex items-center gap-4">
@@ -112,9 +113,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick actions */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900">🔍 Research Keywords</h3>
+            <div className="flex items-center gap-2 text-gray-900">
+              <Search className="h-5 w-5 text-indigo-600" />
+              <h3 className="text-lg font-semibold">Research Keywords</h3>
+            </div>
             <p className="mt-1 text-sm text-gray-500">Generate 20 keyword teknologi baru</p>
             <Link href="/keywords" className="mt-4 inline-block">
               <Button variant="primary">Mulai Research</Button>
@@ -122,7 +126,10 @@ export default function DashboardPage() {
           </Card>
 
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900">✍️ Generate Artikel</h3>
+            <div className="flex items-center gap-2 text-gray-900">
+              <Sparkles className="h-5 w-5 text-indigo-600" />
+              <h3 className="text-lg font-semibold">Generate Artikel</h3>
+            </div>
             <p className="mt-1 text-sm text-gray-500">Buat artikel dari keyword yang ada</p>
             <Link href="/generate" className="mt-4 inline-block">
               <Button variant="primary">Generate Sekarang</Button>
