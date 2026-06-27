@@ -1,6 +1,6 @@
 # Supabase Database Setup
 
-Skema database untuk **wlytics** (content farm). Folder ini berisi:
+Skema database untuk **wlytics**. Folder ini berisi:
 
 - [`schema.sql`](./schema.sql) — definisi tabel, index, dan konfigurasi RLS.
 

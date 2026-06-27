@@ -8,7 +8,6 @@ import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
-import Loader from '@/components/ui/Loader'
 import EmptyState from '@/components/ui/EmptyState'
 import type { Article, ArticleStatus } from '@/types'
 
@@ -115,7 +114,11 @@ export default function ArticlesPage() {
         </div>
 
         {loading ? (
-          <Loader text="Memuat artikel..." />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-40 animate-pulse rounded-xl bg-gray-100" />
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
           <Card>
             <EmptyState
@@ -130,7 +133,7 @@ export default function ArticlesPage() {
             />
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
             {filtered.map((article) => {
               const canPublish = PUBLISHABLE.includes(article.status)
               return (

@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import {
@@ -27,9 +27,10 @@ const STEP_LABELS = [
   'Simpan ke Database'
 ]
 
-// Estimated time (ms) at which each step visually starts, while the single
-// /api/generate request runs. Final state is reconciled to the real result.
-const STEP_TIMINGS = [4000, 20000, 28000]
+type StreamEvent =
+  | { type: 'step'; index: number; status: StepStatus }
+  | { type: 'done'; data: Article }
+  | { type: 'error'; index: number; error: string }
 
 function StepIcon({ status }: { status: StepStatus }) {
   switch (status) {
@@ -56,9 +57,6 @@ function GenerateContent() {
   const [steps, setSteps] = useState<StepStatus[]>(['pending', 'pending', 'pending', 'pending'])
   const [result, setResult] = useState<Article | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
-  const activeStep = useRef(0)
 
   const queryKeywordId = searchParams.get('keyword_id')
 
@@ -88,42 +86,31 @@ function GenerateContent() {
     }
   }, [queryKeywordId, keywords])
 
-  // Clear any pending timers on unmount.
-  useEffect(() => {
-    return () => {
-      timers.current.forEach(clearTimeout)
-    }
-  }, [])
-
   const selectedKeyword = useMemo(
     () => keywords.find((k) => k.id === selectedId) ?? null,
     [keywords, selectedId]
   )
 
-  function setStep(index: number, status: StepStatus) {
-    setSteps((prev) => {
-      const next = [...prev]
-      next[index] = status
-      return next
-    })
-  }
-
-  function clearTimers() {
-    timers.current.forEach(clearTimeout)
-    timers.current = []
-  }
-
-  function startVisualProgress() {
-    setSteps(['loading', 'pending', 'pending', 'pending'])
-    activeStep.current = 0
-
-    timers.current = STEP_TIMINGS.map((delay, i) =>
-      setTimeout(() => {
-        setStep(i, 'done')
-        setStep(i + 1, 'loading')
-        activeStep.current = i + 1
-      }, delay)
-    )
+  function applyEvent(event: StreamEvent) {
+    if (event.type === 'step') {
+      setSteps((prev) => {
+        const next = [...prev]
+        next[event.index] = event.status
+        return next
+      })
+    } else if (event.type === 'done') {
+      setSteps(['done', 'done', 'done', 'done'])
+      setResult(event.data)
+      toast.success('Artikel berhasil dibuat!')
+    } else if (event.type === 'error') {
+      setSteps((prev) => {
+        const next = [...prev]
+        next[event.index] = 'error'
+        return next
+      })
+      setError(event.error)
+      toast.error(event.error)
+    }
   }
 
   async function handleGenerate() {
@@ -132,7 +119,7 @@ function GenerateContent() {
     setGenerating(true)
     setError(null)
     setResult(null)
-    startVisualProgress()
+    setSteps(['pending', 'pending', 'pending', 'pending'])
 
     try {
       const res = await fetch('/api/generate', {
@@ -143,20 +130,29 @@ function GenerateContent() {
           keyword: selectedKeyword.keyword
         })
       })
-      const json = await res.json()
 
-      clearTimers()
-
-      if (json.success) {
-        setSteps(['done', 'done', 'done', 'done'])
-        setResult(json.data)
-        toast.success('Artikel berhasil dibuat!')
-      } else {
-        throw new Error(json.error ?? 'Gagal generate artikel')
+      if (!res.ok || !res.body) {
+        throw new Error('Gagal terhubung ke server generate')
       }
+
+      // Read the NDJSON stream and apply each event as it arrives.
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
+        for (const line of lines) {
+          if (line.trim()) applyEvent(JSON.parse(line) as StreamEvent)
+        }
+      }
+      if (buffer.trim()) applyEvent(JSON.parse(buffer) as StreamEvent)
     } catch (err) {
-      clearTimers()
-      setStep(activeStep.current, 'error')
       const message = err instanceof Error ? err.message : 'Gagal generate artikel'
       setError(message)
       toast.error(message)
@@ -166,7 +162,6 @@ function GenerateContent() {
   }
 
   function resetForm() {
-    clearTimers()
     setResult(null)
     setError(null)
     setSteps(['pending', 'pending', 'pending', 'pending'])

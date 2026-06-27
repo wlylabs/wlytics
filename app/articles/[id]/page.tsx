@@ -4,12 +4,16 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import toast from 'react-hot-toast'
-import { ArrowLeft, ExternalLink, Upload } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Upload, Trash2 } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Loader from '@/components/ui/Loader'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
+
+const META_TITLE_LIMIT = 60
+const META_DESC_LIMIT = 155
 import type { Article } from '@/types'
 
 const markdownComponents = {
@@ -57,8 +61,12 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
   const [metaTitle, setMetaTitle] = useState('')
   const [metaDescription, setMetaDescription] = useState('')
   const [slug, setSlug] = useState('')
+  const [kategori, setKategori] = useState('')
+  const [tags, setTags] = useState('')
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -71,6 +79,8 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
           setMetaTitle(a.meta_title ?? '')
           setMetaDescription(a.meta_description ?? '')
           setSlug(a.slug ?? '')
+          setKategori(a.kategori ?? '')
+          setTags((a.tags ?? []).join(', '))
         } else {
           setNotFound(true)
         }
@@ -87,6 +97,10 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
   async function handleSave() {
     if (!article) return
     setSaving(true)
+    const tagsArray = tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean)
     try {
       const res = await fetch('/api/articles', {
         method: 'PATCH',
@@ -95,14 +109,25 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
           id: article.id,
           meta_title: metaTitle,
           meta_description: metaDescription,
-          slug
+          slug,
+          kategori,
+          tags: tagsArray
         })
       })
       const json = await res.json()
       if (json.success) {
         toast.success('Perubahan disimpan')
         setArticle((prev) =>
-          prev ? { ...prev, meta_title: metaTitle, meta_description: metaDescription, slug } : prev
+          prev
+            ? {
+                ...prev,
+                meta_title: metaTitle,
+                meta_description: metaDescription,
+                slug,
+                kategori,
+                tags: tagsArray
+              }
+            : prev
         )
       } else {
         toast.error(json.error ?? 'Gagal menyimpan perubahan')
@@ -112,6 +137,28 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
       toast.error('Gagal menyimpan perubahan')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!article) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/articles/${article.id}`, { method: 'DELETE' })
+      const json = await res.json()
+      if (json.success) {
+        toast.success('Artikel dihapus')
+        router.push('/articles')
+      } else {
+        toast.error(json.error ?? 'Gagal menghapus artikel')
+        setDeleting(false)
+        setDeleteOpen(false)
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Gagal menghapus artikel')
+      setDeleting(false)
+      setDeleteOpen(false)
     }
   }
 
@@ -261,7 +308,13 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                     onChange={(e) => setMetaTitle(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   />
-                  <p className="mt-1 text-xs text-gray-400">{metaTitle.length} karakter</p>
+                  <p
+                    className={`mt-1 text-xs ${
+                      metaTitle.length > META_TITLE_LIMIT ? 'text-red-500' : 'text-gray-400'
+                    }`}
+                  >
+                    {metaTitle.length}/{META_TITLE_LIMIT} karakter
+                  </p>
                 </div>
 
                 <div>
@@ -272,7 +325,13 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                     rows={3}
                     className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   />
-                  <p className="mt-1 text-xs text-gray-400">{metaDescription.length} karakter</p>
+                  <p
+                    className={`mt-1 text-xs ${
+                      metaDescription.length > META_DESC_LIMIT ? 'text-red-500' : 'text-gray-400'
+                    }`}
+                  >
+                    {metaDescription.length}/{META_DESC_LIMIT} karakter
+                  </p>
                 </div>
 
                 <div>
@@ -284,6 +343,26 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Kategori</label>
+                  <input
+                    value={kategori}
+                    onChange={(e) => setKategori(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Tags</label>
+                  <input
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    placeholder="pisahkan dengan koma"
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">Pisahkan tiap tag dengan koma.</p>
+                </div>
+
                 <Button
                   variant="primary"
                   onClick={handleSave}
@@ -293,11 +372,32 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                 >
                   Simpan Perubahan
                 </Button>
+
+                <Button
+                  variant="ghost"
+                  onClick={() => setDeleteOpen(true)}
+                  className="w-full text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Hapus Artikel
+                </Button>
               </div>
             </Card>
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Hapus Artikel"
+        description="Artikel ini akan dihapus permanen dan tidak bisa dikembalikan. Lanjutkan?"
+        confirmLabel="Ya, Hapus"
+        cancelLabel="Batal"
+        confirmVariant="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+      />
     </>
   )
 }

@@ -1,4 +1,4 @@
-# 🤖 AI Content Farm Dashboard
+# 🤖 wlytics
 
 Dashboard otomatis untuk generate & publish artikel teknologi menggunakan Groq + Gemini API ke WordPress.
 
