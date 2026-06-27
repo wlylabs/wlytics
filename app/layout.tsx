@@ -16,8 +16,17 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "wlytics",
-  description: "AI-powered content pipeline for tech articles",
+  title: {
+    default: "wlytics",
+    template: "%s · wlytics",
+  },
+  description: "AI-powered content pipeline for tech articles (Groq + Gemini → WordPress)",
+  applicationName: "wlytics",
+  openGraph: {
+    title: "wlytics",
+    description: "AI-powered content pipeline for tech articles",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -28,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-gray-50 text-gray-900`}
       >
         <Sidebar />
         <div className="flex min-h-screen flex-col pt-14 lg:ml-60 lg:pt-0">

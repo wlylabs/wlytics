@@ -9,6 +9,7 @@ import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import type { Keyword } from '@/types'
 
 function IntentBadge({ intent }: { intent: string }) {
@@ -140,72 +141,87 @@ export default function KeywordsPage() {
               }
             />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
-                    <th className="pb-3 pr-4 font-medium">No</th>
-                    <th className="pb-3 pr-4 font-medium">Keyword</th>
-                    <th className="pb-3 pr-4 font-medium">Intent</th>
-                    <th className="pb-3 pr-4 font-medium">Estimasi Artikel</th>
-                    <th className="pb-3 pr-4 font-medium">Status</th>
-                    <th className="pb-3 font-medium">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {keywords.map((kw, idx) => (
-                    <tr key={kw.id}>
-                      <td className="py-3 pr-4 text-gray-400">{idx + 1}</td>
-                      <td className="py-3 pr-4 font-medium text-gray-900">{kw.keyword}</td>
-                      <td className="py-3 pr-4">
-                        <IntentBadge intent={kw.intent} />
-                      </td>
-                      <td className="py-3 pr-4 text-gray-500">{kw.estimasi_artikel}</td>
-                      <td className="py-3 pr-4">
-                        <Badge status={kw.status} />
-                      </td>
-                      <td className="py-3">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={kw.status !== 'unused'}
-                          onClick={() => handleGenerate(kw)}
-                        >
-                          Generate Artikel
-                        </Button>
-                      </td>
+            <>
+              {/* Desktop table */}
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
+                      <th className="pb-3 pr-4 font-medium">No</th>
+                      <th className="pb-3 pr-4 font-medium">Keyword</th>
+                      <th className="pb-3 pr-4 font-medium">Intent</th>
+                      <th className="pb-3 pr-4 font-medium">Estimasi Artikel</th>
+                      <th className="pb-3 pr-4 font-medium">Status</th>
+                      <th className="pb-3 font-medium">Aksi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {keywords.map((kw, idx) => (
+                      <tr key={kw.id}>
+                        <td className="py-3 pr-4 text-gray-400">{idx + 1}</td>
+                        <td className="py-3 pr-4 font-medium text-gray-900">{kw.keyword}</td>
+                        <td className="py-3 pr-4">
+                          <IntentBadge intent={kw.intent} />
+                        </td>
+                        <td className="py-3 pr-4 text-gray-500">{kw.estimasi_artikel}</td>
+                        <td className="py-3 pr-4">
+                          <Badge status={kw.status} />
+                        </td>
+                        <td className="py-3">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={kw.status !== 'unused'}
+                            onClick={() => handleGenerate(kw)}
+                          >
+                            Generate Artikel
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <ul className="space-y-3 sm:hidden">
+                {keywords.map((kw) => (
+                  <li key={kw.id} className="rounded-lg border border-gray-100 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-medium text-gray-900">{kw.keyword}</p>
+                      <Badge status={kw.status} />
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">{kw.estimasi_artikel}</p>
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <IntentBadge intent={kw.intent} />
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={kw.status !== 'unused'}
+                        onClick={() => handleGenerate(kw)}
+                      >
+                        Generate Artikel
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </Card>
       </div>
 
-      {/* Confirmation modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900">Research Keyword Baru</h3>
-            <p className="mt-2 text-sm text-gray-500">
-              Ini akan generate 20 keyword baru menggunakan Groq AI.
-            </p>
-            <div className="mt-6 flex justify-end gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => setModalOpen(false)}
-                disabled={researching}
-              >
-                Batal
-              </Button>
-              <Button variant="primary" onClick={handleResearch} loading={researching}>
-                Ya, Research
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Confirmation dialog */}
+      <ConfirmDialog
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title="Research Keyword Baru"
+        description="Ini akan generate 20 keyword baru menggunakan Groq AI."
+        confirmLabel="Ya, Research"
+        cancelLabel="Batal"
+        loading={researching}
+        onConfirm={handleResearch}
+      />
     </>
   )
 }

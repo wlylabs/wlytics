@@ -13,7 +13,6 @@ import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
-import Loader from '@/components/ui/Loader'
 import type { Article, DashboardStats } from '@/types'
 
 type StatCard = {
@@ -61,8 +60,19 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <>
-        <Header title="Dashboard" subtitle="Overview performa wlytics kamu" />
-        <Loader text="Memuat dashboard..." />
+        <Header title="Dashboard" subtitle="Overview performa wlytics kamu" badge="Niche: Teknologi" />
+        <div className="space-y-6 p-4 sm:p-6 lg:space-y-8 lg:p-8">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-24 animate-pulse rounded-xl bg-gray-100" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">
+            <div className="h-32 animate-pulse rounded-xl bg-gray-100" />
+            <div className="h-32 animate-pulse rounded-xl bg-gray-100" />
+          </div>
+          <div className="h-64 animate-pulse rounded-xl bg-gray-100" />
+        </div>
       </>
     )
   }
@@ -92,7 +102,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Header title="Dashboard" subtitle="Overview performa wlytics kamu" />
+      <Header title="Dashboard" subtitle="Overview performa wlytics kamu" badge="Niche: Teknologi" />
 
       <div className="space-y-6 p-4 sm:p-6 lg:space-y-8 lg:p-8">
         {/* Stats cards */}
@@ -149,30 +159,53 @@ export default function DashboardPage() {
           {recentArticles.length === 0 ? (
             <p className="py-8 text-center text-sm text-gray-500">Belum ada artikel.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
-                    <th className="pb-3 pr-4 font-medium">Judul</th>
-                    <th className="pb-3 pr-4 font-medium">Keyword</th>
-                    <th className="pb-3 pr-4 font-medium">Status</th>
-                    <th className="pb-3 font-medium">Tanggal</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {recentArticles.map((article) => (
-                    <tr key={article.id}>
-                      <td className="py-3 pr-4 font-medium text-gray-900">{article.title}</td>
-                      <td className="py-3 pr-4 text-gray-500">{article.keyword}</td>
-                      <td className="py-3 pr-4">
-                        <Badge status={article.status} />
-                      </td>
-                      <td className="py-3 text-gray-500">{formatDate(article.created_at)}</td>
+            <>
+              {/* Desktop table */}
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
+                      <th className="pb-3 pr-4 font-medium">Judul</th>
+                      <th className="pb-3 pr-4 font-medium">Keyword</th>
+                      <th className="pb-3 pr-4 font-medium">Status</th>
+                      <th className="pb-3 font-medium">Tanggal</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {recentArticles.map((article) => (
+                      <tr key={article.id}>
+                        <td className="py-3 pr-4 font-medium text-gray-900">{article.title}</td>
+                        <td className="py-3 pr-4 text-gray-500">{article.keyword}</td>
+                        <td className="py-3 pr-4">
+                          <Badge status={article.status} />
+                        </td>
+                        <td className="py-3 text-gray-500">{formatDate(article.created_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <ul className="divide-y divide-gray-50 sm:hidden">
+                {recentArticles.map((article) => (
+                  <li key={article.id} className="py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <Link
+                        href={`/articles/${article.id}`}
+                        className="font-medium text-gray-900 hover:text-indigo-600"
+                      >
+                        {article.title}
+                      </Link>
+                      <Badge status={article.status} />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {article.keyword} · {formatDate(article.created_at)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </Card>
       </div>
