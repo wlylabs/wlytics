@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🤖 AI Content Farm Dashboard
 
-## Getting Started
+Dashboard otomatis untuk generate & publish artikel teknologi menggunakan Groq + Gemini API ke WordPress.
 
-First, run the development server:
+## ✨ Fitur
+- 🔍 Keyword Research otomatis (Groq AI)
+- ✍️ Generate artikel 2000 kata (Gemini Flash)
+- 📋 Preview & edit artikel sebelum publish
+- 🚀 Auto publish ke WordPress
+- 📊 Analytics & tracking
 
+## 🛠 Tech Stack
+- **Frontend & Backend**: Next.js 14 (App Router + TypeScript)
+- **Styling**: Tailwind CSS
+- **Database**: Supabase (PostgreSQL)
+- **LLM**: Groq API + Gemini API
+- **CMS**: WordPress REST API
+
+## 🚀 Quick Start
+
+### 1. Clone & Install
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/wlylabs/wlytics.git
+cd wlytics
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment Variables
+```bash
+cp .env.example .env.local
+```
+Isi semua value di `.env.local`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Setup Database
+- Buka Supabase Dashboard → SQL Editor
+- Jalankan file `supabase/schema.sql` (lihat [`supabase/README.md`](./supabase/README.md) untuk langkah detail)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Run Development
+```bash
+npm run dev
+```
+Buka http://localhost:3000
 
-## Learn More
+## 📁 Struktur Project
 
-To learn more about Next.js, take a look at the following resources:
+```
+.
+├── app/                      # Next.js App Router
+│   ├── api/                  # Route handlers (backend)
+│   │   ├── keywords/         # GET list, POST research keyword (Groq)
+│   │   ├── generate/         # POST pipeline outline → artikel → meta
+│   │   ├── articles/         # GET list, PATCH update, [id] GET/DELETE
+│   │   ├── publish/          # POST publish artikel ke WordPress
+│   │   └── stats/            # GET statistik dashboard
+│   ├── keywords/             # Halaman keyword research
+│   ├── generate/             # Halaman generate artikel
+│   ├── articles/             # Daftar artikel + detail ([id])
+│   ├── analytics/            # Halaman analytics
+│   ├── layout.tsx            # Root layout (Sidebar + Toaster)
+│   └── page.tsx              # Dashboard
+├── components/
+│   ├── layout/               # Sidebar, Header
+│   └── ui/                   # Button, Badge, Card, Loader, EmptyState
+├── lib/                      # Integrasi: groq, gemini, supabase, wordpress, prompts
+├── types/                    # Tipe TypeScript bersama (Keyword, Article, dll)
+├── supabase/                 # schema.sql + panduan setup database
+├── .env.example              # Template environment variables
+└── README.md
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔑 API Keys yang Dibutuhkan
+- **Groq**: https://console.groq.com
+- **Gemini**: https://aistudio.google.com
+- **Supabase**: https://supabase.com
+- **WordPress**: Settings → Application Passwords
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📄 License
+MIT

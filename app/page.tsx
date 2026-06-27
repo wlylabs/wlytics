@@ -1,101 +1,174 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import {
+  FileText,
+  CheckCircle,
+  Search,
+  type LucideIcon
+} from 'lucide-react'
+import Header from '@/components/layout/Header'
+import Card from '@/components/ui/Card'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import Loader from '@/components/ui/Loader'
+import type { Article, DashboardStats } from '@/types'
+
+type StatCard = {
+  label: string
+  value: number
+  icon: LucideIcon
+  color: string
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+}
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [articles, setArticles] = useState<Article[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [statsRes, articlesRes] = await Promise.all([
+          fetch('/api/stats'),
+          fetch('/api/articles')
+        ])
+        const statsJson = await statsRes.json()
+        const articlesJson = await articlesRes.json()
+
+        if (statsJson.success) setStats(statsJson.data)
+        if (articlesJson.success) setArticles(articlesJson.data ?? [])
+      } catch (err) {
+        console.error('Failed to load dashboard', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    load()
+  }, [])
+
+  if (loading) {
+    return (
+      <>
+        <Header title="Dashboard" subtitle="Overview performa content farm kamu" />
+        <Loader text="Memuat dashboard..." />
+      </>
+    )
+  }
+
+  const statCards: StatCard[] = [
+    {
+      label: 'Total Artikel',
+      value: stats?.total_articles ?? 0,
+      icon: FileText,
+      color: 'text-indigo-600 bg-indigo-50'
+    },
+    {
+      label: 'Published',
+      value: stats?.published ?? 0,
+      icon: CheckCircle,
+      color: 'text-green-600 bg-green-50'
+    },
+    {
+      label: 'Keywords Tersedia',
+      value: stats?.unused_keywords ?? 0,
+      icon: Search,
+      color: 'text-orange-600 bg-orange-50'
+    }
+  ]
+
+  const recentArticles = articles.slice(0, 5)
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <>
+      <Header title="Dashboard" subtitle="Overview performa content farm kamu" />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="space-y-8 p-8">
+        {/* Stats cards */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {statCards.map(({ label, value, icon: Icon, color }) => (
+            <Card key={label}>
+              <div className="flex items-center gap-4">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${color}`}>
+                  <Icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">{label}</p>
+                  <p className="text-2xl font-semibold text-gray-900">{value}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+
+        {/* Quick actions */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Card>
+            <h3 className="text-lg font-semibold text-gray-900">🔍 Research Keywords</h3>
+            <p className="mt-1 text-sm text-gray-500">Generate 20 keyword teknologi baru</p>
+            <Link href="/keywords" className="mt-4 inline-block">
+              <Button variant="primary">Mulai Research</Button>
+            </Link>
+          </Card>
+
+          <Card>
+            <h3 className="text-lg font-semibold text-gray-900">✍️ Generate Artikel</h3>
+            <p className="mt-1 text-sm text-gray-500">Buat artikel dari keyword yang ada</p>
+            <Link href="/generate" className="mt-4 inline-block">
+              <Button variant="primary">Generate Sekarang</Button>
+            </Link>
+          </Card>
+        </div>
+
+        {/* Recent articles */}
+        <Card>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Artikel Terbaru</h3>
+            <Link href="/articles" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+              Lihat Semua →
+            </Link>
+          </div>
+
+          {recentArticles.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-500">Belum ada artikel.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
+                    <th className="pb-3 pr-4 font-medium">Judul</th>
+                    <th className="pb-3 pr-4 font-medium">Keyword</th>
+                    <th className="pb-3 pr-4 font-medium">Status</th>
+                    <th className="pb-3 font-medium">Tanggal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {recentArticles.map((article) => (
+                    <tr key={article.id}>
+                      <td className="py-3 pr-4 font-medium text-gray-900">{article.title}</td>
+                      <td className="py-3 pr-4 text-gray-500">{article.keyword}</td>
+                      <td className="py-3 pr-4">
+                        <Badge status={article.status} />
+                      </td>
+                      <td className="py-3 text-gray-500">{formatDate(article.created_at)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      </div>
+    </>
+  )
 }
