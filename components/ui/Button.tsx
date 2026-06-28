@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes } from 'react'
+import { ButtonHTMLAttributes, forwardRef } from 'react'
 import { Loader2 } from 'lucide-react'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
@@ -23,19 +23,17 @@ const sizeClasses: Record<Size, string> = {
   lg: 'px-6 py-3 text-base'
 }
 
-export default function Button({
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  disabled = false,
-  className = '',
-  children,
-  ...props
-}: ButtonProps) {
+// forwardRef so the component works as a Radix `asChild` trigger/close
+// (e.g. PublishMenu dropdown, ConfirmDialog) — Radix needs the ref.
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { variant = 'primary', size = 'md', loading = false, disabled = false, className = '', children, ...props },
+  ref
+) {
   const isDisabled = disabled || loading
 
   return (
     <button
+      ref={ref}
       disabled={isDisabled}
       className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-1 ${
         isDisabled ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
@@ -46,4 +44,6 @@ export default function Button({
       {children}
     </button>
   )
-}
+})
+
+export default Button
