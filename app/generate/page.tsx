@@ -142,7 +142,8 @@ function GenerateContent() {
 
   function applyEvent(event: StreamEvent) {
     if (event.type === 'notice') {
-      toast(event.message, { icon: 'ℹ️' })
+      // Model fallback (e.g. Groq -> Gemini) is silent — no popup. Only a real
+      // error should surface a toast.
     } else if (event.type === 'step') {
       setSteps((prev) => {
         const next = [...prev]
