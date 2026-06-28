@@ -56,8 +56,8 @@ export async function groqComplete(
   }
 }
 
-export async function groqFast(prompt: string): Promise<string> {
-  return groqComplete(prompt, FAST_MODEL)
+export async function groqFast(prompt: string, maxTokens = 4096): Promise<string> {
+  return groqComplete(prompt, FAST_MODEL, maxTokens)
 }
 
 export type KeyStatus = { configured: boolean; ok: boolean; message: string }
