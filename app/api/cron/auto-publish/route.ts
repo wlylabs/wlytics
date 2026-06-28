@@ -7,12 +7,13 @@ import { getArticleType, suggestArticleType } from '@/lib/articleTypes'
 import { publishToBlogger } from '@/lib/blogger'
 import type { Keyword } from '@/types'
 
-export const maxDuration = 300
+export const maxDuration = 60
 export const dynamic = 'force-dynamic'
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-const MAX_PER_RUN = 3
+// 1 article per run to stay within the Vercel Hobby 60s function limit.
+const MAX_PER_RUN = 1
 
 export async function GET(req: Request) {
   // 1. Authorize (Vercel Cron sends "Authorization: Bearer <CRON_SECRET>").
@@ -22,7 +23,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    // 2. Get up to 3 unused keywords (oldest first).
+    // 2. Get the next unused keyword (oldest first).
     let keywords = await fetchUnused()
     console.log(`[cron] found ${keywords.length} unused keyword(s)`)
 
