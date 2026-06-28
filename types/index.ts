@@ -16,6 +16,7 @@ export interface CronLog {
 export interface CronStatusData {
   configured: boolean
   bloggerReady: boolean
+  enabled: boolean
   schedule: string
   scheduleLabel: string
   lastRun: Pick<CronLog, 'run_at' | 'status' | 'generated' | 'published' | 'error_message'> | null

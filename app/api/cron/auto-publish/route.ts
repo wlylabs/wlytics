@@ -5,6 +5,7 @@ import { geminiComplete } from '@/lib/gemini'
 import { PROMPTS } from '@/lib/prompts'
 import { getArticleType, suggestArticleType } from '@/lib/articleTypes'
 import { publishToBlogger } from '@/lib/blogger'
+import { isAutopilotEnabled } from '@/lib/settings'
 import type { Keyword } from '@/types'
 
 export const maxDuration = 60
@@ -20,6 +21,12 @@ export async function GET(req: Request) {
   const auth = req.headers.get('authorization')
   if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // 1b. Respect the auto-pilot on/off switch (scheduled + manual runs).
+  if (!(await isAutopilotEnabled())) {
+    console.log('[cron] auto-pilot is stopped, skipping run')
+    return NextResponse.json({ success: true, skipped: true, reason: 'Auto-pilot dihentikan' })
   }
 
   try {
