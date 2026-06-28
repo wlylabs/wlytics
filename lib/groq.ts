@@ -59,3 +59,19 @@ export async function groqComplete(
 export async function groqFast(prompt: string): Promise<string> {
   return groqComplete(prompt, FAST_MODEL)
 }
+
+export type KeyStatus = { configured: boolean; ok: boolean; message: string }
+
+// Verify the Groq key via models.list() — an auth check that does NOT spend
+// generation quota.
+export async function checkGroqKey(): Promise<KeyStatus> {
+  if (!process.env.GROQ_API_KEY) {
+    return { configured: false, ok: false, message: 'GROQ_API_KEY belum diset' }
+  }
+  try {
+    await getClient().models.list()
+    return { configured: true, ok: true, message: 'API key valid' }
+  } catch (err) {
+    return { configured: true, ok: false, message: friendlyError(err, DEFAULT_MODEL).message }
+  }
+}
