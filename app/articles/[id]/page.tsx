@@ -20,28 +20,48 @@ const META_DESC_LIMIT = 155
 
 const markdownComponents = {
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1 className="mb-4 mt-6 text-2xl font-bold text-gray-900" {...props} />
+    <h1 className="mb-4 mt-8 text-2xl font-bold tracking-tight text-gray-900" {...props} />
   ),
   h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="mb-3 mt-6 text-xl font-semibold text-gray-900" {...props} />
+    <h2 className="mb-3 mt-8 text-xl font-bold tracking-tight text-gray-900" {...props} />
   ),
   h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className="mb-2 mt-4 text-lg font-semibold text-gray-800" {...props} />
+    <h3 className="mb-2 mt-6 text-lg font-semibold text-gray-800" {...props} />
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="mb-4 leading-relaxed text-gray-700" {...props} />
+    <p className="mb-5 text-[15px] leading-7 text-gray-700" {...props} />
   ),
   strong: (props: React.HTMLAttributes<HTMLElement>) => (
     <strong className="font-semibold text-gray-900" {...props} />
   ),
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
-    <ul className="mb-4 list-disc space-y-1 pl-6 text-gray-700" {...props} />
+    <ul className="mb-5 list-disc space-y-1.5 pl-5 text-[15px] leading-7 text-gray-700" {...props} />
   ),
   ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
-    <ol className="mb-4 list-decimal space-y-1 pl-6 text-gray-700" {...props} />
+    <ol className="mb-5 list-decimal space-y-1.5 pl-5 text-[15px] leading-7 text-gray-700" {...props} />
+  ),
+  blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => (
+    <blockquote className="my-5 border-l-2 border-violet-300 pl-4 italic text-gray-600" {...props} />
   ),
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a className="text-violet-600 underline hover:text-violet-700" {...props} />
+    <a
+      className="font-medium text-violet-600 underline decoration-violet-300 underline-offset-2 hover:text-violet-700"
+      {...props}
+    />
+  ),
+  table: (props: React.HTMLAttributes<HTMLTableElement>) => (
+    <div className="my-5 overflow-x-auto rounded-xl border border-gray-200">
+      <table className="w-full text-left text-sm" {...props} />
+    </div>
+  ),
+  thead: (props: React.HTMLAttributes<HTMLTableSectionElement>) => (
+    <thead className="bg-gray-50 text-gray-700" {...props} />
+  ),
+  th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
+    <th className="border-b border-gray-200 px-3 py-2 font-semibold" {...props} />
+  ),
+  td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
+    <td className="border-b border-gray-100 px-3 py-2 text-gray-600" {...props} />
   )
 }
 
@@ -260,23 +280,23 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
             <Card>
               <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
                 <div>
-                  <dt className="text-gray-400">Keyword</dt>
+                  <dt className="text-xs uppercase tracking-wide text-gray-400">Keyword</dt>
                   <dd className="mt-0.5 font-medium text-gray-800">{article.keyword}</dd>
                 </div>
                 <div>
-                  <dt className="text-gray-400">Kategori</dt>
+                  <dt className="text-xs uppercase tracking-wide text-gray-400">Kategori</dt>
                   <dd className="mt-0.5 font-medium text-gray-800">{article.kategori}</dd>
                 </div>
                 <div>
-                  <dt className="text-gray-400">Word count</dt>
+                  <dt className="text-xs uppercase tracking-wide text-gray-400">Word count</dt>
                   <dd className="mt-0.5 font-medium text-gray-800">{article.word_count}</dd>
                 </div>
                 <div>
-                  <dt className="text-gray-400">Tanggal</dt>
+                  <dt className="text-xs uppercase tracking-wide text-gray-400">Tanggal</dt>
                   <dd className="mt-0.5 font-medium text-gray-800">{formatDate(article.created_at)}</dd>
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <dt className="text-gray-400">Tags</dt>
+                  <dt className="text-xs uppercase tracking-wide text-gray-400">Tags</dt>
                   <dd className="mt-1 flex flex-wrap gap-1.5">
                     {article.tags?.map((tag) => (
                       <span
