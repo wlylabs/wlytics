@@ -104,7 +104,7 @@ Defaults are current production models and can be overridden via environment var
 | --- | --- | --- |
 | Groq (large) | `openai/gpt-oss-120b` | `GROQ_MODEL` |
 | Groq (fast) | `openai/gpt-oss-20b` | `GROQ_FAST_MODEL` |
-| Gemini | `gemini-flash-latest` | `GEMINI_MODEL` |
+| Gemini | `gemini-2.5-flash` | `GEMINI_MODEL` |
 
 LLM calls retry automatically with exponential backoff on rate limits and transient errors, and fail with a clear message when an API key is missing. If a provider deprecates a model, just update the matching environment variable.
 
