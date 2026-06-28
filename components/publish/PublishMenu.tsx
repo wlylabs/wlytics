@@ -16,6 +16,17 @@ interface PublishMenuProps {
 
 export default function PublishMenu({ article, size = 'sm', onUpdated }: PublishMenuProps) {
   const [publishing, setPublishing] = useState<null | 'wp' | 'blogger'>(null)
+  const [open, setOpen] = useState(false)
+
+  // Run the action after the menu has closed so Radix's selection/focus
+  // lifecycle (which is flaky for async items on touch) doesn't swallow it.
+  function select(fn: () => void) {
+    return (e: Event) => {
+      e.preventDefault()
+      setOpen(false)
+      setTimeout(fn, 0)
+    }
+  }
 
   async function publishWordPress() {
     setPublishing('wp')
@@ -65,7 +76,7 @@ export default function PublishMenu({ article, size = 'sm', onUpdated }: Publish
     'flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 outline-none data-[highlighted]:bg-gray-100 data-[disabled]:cursor-default data-[disabled]:text-gray-400'
 
   return (
-    <DropdownMenu.Root>
+    <DropdownMenu.Root open={open} onOpenChange={setOpen}>
       <DropdownMenu.Trigger asChild>
         <Button
           variant="primary"
@@ -88,7 +99,7 @@ export default function PublishMenu({ article, size = 'sm', onUpdated }: Publish
           <DropdownMenu.Item
             className={itemClass}
             disabled={!!article.wp_url}
-            onSelect={publishWordPress}
+            onSelect={select(publishWordPress)}
           >
             <Globe className="h-4 w-4 text-blue-600" />
             {article.wp_url ? (
@@ -103,7 +114,7 @@ export default function PublishMenu({ article, size = 'sm', onUpdated }: Publish
           <DropdownMenu.Item
             className={itemClass}
             disabled={!!article.blogger_url}
-            onSelect={publishBlogger}
+            onSelect={select(publishBlogger)}
           >
             <Rss className="h-4 w-4 text-orange-600" />
             {article.blogger_url ? (

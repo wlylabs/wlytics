@@ -394,23 +394,26 @@ function GenerateContent() {
             {/* Pipeline progress */}
             {generating && (
               <Card title="Progress Pipeline">
-                <ol className="relative">
+                <ol>
                   {STEP_LABELS.map((label, i) => {
                     const status = steps[i]
                     const isLast = i === STEP_LABELS.length - 1
                     return (
-                      <li key={label} className="relative flex gap-3 pb-5 last:pb-0">
-                        {!isLast && (
-                          <span
-                            className={`absolute left-[9px] top-6 h-[calc(100%-1rem)] w-px ${
-                              status === 'done' ? 'bg-green-300' : 'bg-gray-200'
-                            }`}
-                          />
-                        )}
-                        <span className="relative z-10 mt-0.5">
-                          <StepIcon status={status} />
-                        </span>
-                        <div>
+                      <li key={label} className="flex gap-3 pb-5 last:pb-0">
+                        {/* Icon column with a centered connector line */}
+                        <div className="relative flex w-5 justify-center">
+                          <span className="relative z-10 bg-white">
+                            <StepIcon status={status} />
+                          </span>
+                          {!isLast && (
+                            <span
+                              className={`absolute -bottom-5 left-1/2 top-6 w-px -translate-x-1/2 ${
+                                status === 'done' ? 'bg-green-300' : 'bg-gray-200'
+                              }`}
+                            />
+                          )}
+                        </div>
+                        <div className="pt-0.5">
                           <p
                             className={`text-sm font-medium ${
                               status === 'pending' ? 'text-gray-400' : 'text-gray-800'
