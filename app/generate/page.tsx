@@ -20,6 +20,7 @@ import type { Article, Keyword } from '@/types'
 import {
   ARTICLE_TYPES,
   DEFAULT_ARTICLE_TYPE,
+  suggestArticleType,
   type ArticleTypeId
 } from '@/lib/articleTypes'
 
@@ -58,6 +59,7 @@ function GenerateContent() {
   const [loadingKeywords, setLoadingKeywords] = useState(true)
   const [selectedId, setSelectedId] = useState('')
   const [articleType, setArticleType] = useState<ArticleTypeId>(DEFAULT_ARTICLE_TYPE)
+  const [typeTouched, setTypeTouched] = useState(false)
 
   const [generating, setGenerating] = useState(false)
   const [steps, setSteps] = useState<StepStatus[]>(['pending', 'pending', 'pending', 'pending'])
@@ -96,6 +98,21 @@ function GenerateContent() {
     () => keywords.find((k) => k.id === selectedId) ?? null,
     [keywords, selectedId]
   )
+
+  // Suggested type from the chosen keyword (text + intent).
+  const suggestedType = useMemo(
+    () =>
+      selectedKeyword
+        ? suggestArticleType(selectedKeyword.keyword, selectedKeyword.intent)
+        : null,
+    [selectedKeyword]
+  )
+
+  // Auto-apply the suggestion when the keyword changes, unless the user has
+  // manually picked a type.
+  useEffect(() => {
+    if (suggestedType && !typeTouched) setArticleType(suggestedType)
+  }, [suggestedType, typeTouched])
 
   function applyEvent(event: StreamEvent) {
     if (event.type === 'step') {
@@ -173,6 +190,7 @@ function GenerateContent() {
     setError(null)
     setSteps(['pending', 'pending', 'pending', 'pending'])
     setSelectedId('')
+    setTypeTouched(false)
   }
 
   return (
@@ -269,14 +287,25 @@ function GenerateContent() {
 
             {/* Article type selector */}
             <Card title="Jenis Artikel">
+              {suggestedType && (
+                <p className="mb-3 text-xs text-gray-500">
+                  Disarankan otomatis berdasarkan keyword{' '}
+                  {selectedKeyword?.intent ? `(intent ${selectedKeyword.intent})` : ''}. Kamu tetap
+                  bisa mengubahnya.
+                </p>
+              )}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {ARTICLE_TYPES.map((type) => {
                   const isSelected = articleType === type.id
+                  const isSuggested = suggestedType === type.id
                   return (
                     <button
                       key={type.id}
                       type="button"
-                      onClick={() => setArticleType(type.id)}
+                      onClick={() => {
+                        setArticleType(type.id)
+                        setTypeTouched(true)
+                      }}
                       disabled={generating}
                       aria-pressed={isSelected}
                       className={`rounded-lg border p-4 text-left transition-all duration-150 active:scale-[0.99] disabled:opacity-50 ${
@@ -286,7 +315,14 @@ function GenerateContent() {
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-gray-900">{type.label}</span>
+                        <span className="flex items-center gap-2 font-medium text-gray-900">
+                          {type.label}
+                          {isSuggested && (
+                            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-green-700">
+                              Disarankan
+                            </span>
+                          )}
+                        </span>
                         <span
                           className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
                             isSelected ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'

@@ -64,3 +64,28 @@ export const DEFAULT_ARTICLE_TYPE: ArticleTypeId = 'panduan'
 export function getArticleType(id?: string): ArticleTypeConfig {
   return ARTICLE_TYPES.find((t) => t.id === id) ?? ARTICLE_TYPES[0]
 }
+
+// Heuristic article-type suggestion based on the keyword text and intent.
+// Fast and free (no extra LLM call). Order = most specific signal first.
+export function suggestArticleType(keyword: string, intent?: string): ArticleTypeId {
+  const k = keyword.toLowerCase()
+
+  if (/\b(rilis|resmi|diluncurkan|peluncuran|terbaru|bocoran|kabar|berita|umumkan|hadir)\b/.test(k)) {
+    return 'berita'
+  }
+  if (
+    /\b(vs|versus|banding|perbandingan|comparison|terbaik|rekomendasi|pilihan)\b/.test(k) ||
+    (intent === 'commercial' && /\breview\b/.test(k))
+  ) {
+    return 'perbandingan'
+  }
+  if (/\b(tips|trik|rahasia|hemat|biar|agar|supaya)\b/.test(k)) {
+    return 'tips'
+  }
+  if (/\b(cara|panduan|tutorial|langkah|memilih|setting|mengatur|menggunakan|membuat)\b/.test(k)) {
+    return 'panduan'
+  }
+
+  // Fallback by intent.
+  return intent === 'commercial' ? 'perbandingan' : 'panduan'
+}
