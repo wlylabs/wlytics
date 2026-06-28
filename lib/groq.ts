@@ -19,20 +19,40 @@ function getClient(): Groq {
   return cached
 }
 
+// Turn verbose SDK errors into short, actionable messages for the UI.
+function friendlyError(err: unknown, model: string): Error {
+  const raw = err instanceof Error ? err.message : String(err)
+
+  if (/quota|rate limit|429|too many requests/i.test(raw)) {
+    return new Error('Kuota/rate limit Groq tercapai. Tunggu sebentar lalu coba lagi.')
+  }
+  if (/invalid api key|401|unauthorized|authentication/i.test(raw)) {
+    return new Error('GROQ_API_KEY tidak valid. Periksa kembali key di environment.')
+  }
+  if (/decommission|not found|does not exist|model_not_found|400/i.test(raw) && /model/i.test(raw)) {
+    return new Error(`Model Groq "${model}" tidak tersedia/decommissioned. Set GROQ_MODEL / GROQ_FAST_MODEL ke model lain.`)
+  }
+  return new Error(`Groq error: ${raw.split('\n')[0].slice(0, 200)}`)
+}
+
 export async function groqComplete(
   prompt: string,
   model = DEFAULT_MODEL
 ): Promise<string> {
-  const groq = getClient()
-  const res = await withRetry(() =>
-    groq.chat.completions.create({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
-      max_tokens: 4096
-    })
-  )
-  return res.choices[0]?.message?.content ?? ''
+  try {
+    const groq = getClient()
+    const res = await withRetry(() =>
+      groq.chat.completions.create({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 4096
+      })
+    )
+    return res.choices[0]?.message?.content ?? ''
+  } catch (err) {
+    throw friendlyError(err, model)
+  }
 }
 
 export async function groqFast(prompt: string): Promise<string> {

@@ -9,11 +9,19 @@ type RetryOptions = {
 const RETRYABLE_STATUS = [408, 409, 425, 429, 500, 502, 503, 504]
 
 function isRetryable(err: unknown): boolean {
+  const message = (err as Error)?.message?.toLowerCase() ?? ''
+
+  // Quota/billing exhaustion won't recover within a short backoff window
+  // (the provider hands back a long retry delay), so fail fast with a clear
+  // message instead of hammering the API.
+  if (/quota|resource_exhausted|billing|exceeded your current quota/.test(message)) {
+    return false
+  }
+
   const status = (err as { status?: number; statusCode?: number })?.status ??
     (err as { statusCode?: number })?.statusCode
   if (status && RETRYABLE_STATUS.includes(status)) return true
 
-  const message = (err as Error)?.message?.toLowerCase() ?? ''
   return /timeout|fetch failed|network|econnreset|socket|overloaded|unavailable|temporarily|rate limit|too many requests|\b429\b|\b503\b/.test(
     message
   )
