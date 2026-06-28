@@ -36,11 +36,22 @@ export async function POST(req: Request) {
         const outline = await groqComplete(PROMPTS.generate_outline(keyword, type))
         send({ type: 'step', index: 0, status: 'done' })
 
+        // Internal links: existing published articles (WordPress or Blogger).
+        const { data: publishedRows } = await supabaseAdmin
+          .from('articles')
+          .select('title, wp_url, blogger_url')
+          .or('wp_url.not.is.null,blogger_url.not.is.null')
+          .order('created_at', { ascending: false })
+          .limit(15)
+        const internalLinks = (publishedRows ?? [])
+          .map((a) => ({ title: a.title as string, url: (a.wp_url ?? a.blogger_url) as string }))
+          .filter((l) => l.title && l.url)
+
         // Step 2: Article. Groq is primary (more generous free tier); fall
         // back to Gemini if Groq is rate-limited / unavailable.
         current = 1
         send({ type: 'step', index: 1, status: 'loading' })
-        const articlePrompt = PROMPTS.generate_article(keyword, outline, type)
+        const articlePrompt = PROMPTS.generate_article(keyword, outline, type, internalLinks)
         let content: string
         try {
           content = await groqComplete(articlePrompt, undefined, 8192)

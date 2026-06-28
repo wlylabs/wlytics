@@ -47,3 +47,30 @@ export async function geminiComplete(prompt: string): Promise<string> {
     throw friendlyError(err)
   }
 }
+
+export type KeyStatus = { configured: boolean; ok: boolean; message: string }
+
+// Verify the Gemini key by listing models — an auth check that does NOT spend
+// the (small) generation quota.
+export async function checkGeminiKey(): Promise<KeyStatus> {
+  if (!process.env.GEMINI_API_KEY) {
+    return { configured: false, ok: false, message: 'GEMINI_API_KEY belum diset' }
+  }
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`,
+      { signal: AbortSignal.timeout(8000) }
+    )
+    if (res.ok) return { configured: true, ok: true, message: 'API key valid' }
+    if (res.status === 400 || res.status === 403) {
+      return { configured: true, ok: false, message: 'API key tidak valid' }
+    }
+    return { configured: true, ok: false, message: `Gemini error (HTTP ${res.status})` }
+  } catch (err) {
+    return {
+      configured: true,
+      ok: false,
+      message: err instanceof Error ? err.message : 'Gagal memeriksa Gemini'
+    }
+  }
+}

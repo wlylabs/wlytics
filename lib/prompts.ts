@@ -54,17 +54,29 @@ Aturan:
 Output dalam format markdown.`
   },
 
-  generate_article: (keyword: string, outline: string, type: ArticleTypeConfig) => {
+  generate_article: (
+    keyword: string,
+    outline: string,
+    type: ArticleTypeConfig,
+    internalLinks: { title: string; url: string }[] = []
+  ) => {
     const { year, tanggal } = today()
+    const voice = process.env.BRAND_VOICE?.trim()
+    const linksBlock =
+      internalLinks.length > 0
+        ? `\nTAUTAN INTERNAL TERSEDIA (sisipkan 1-3 yang relevan secara natural,\nformat markdown [judul](url) — jangan dipaksakan, jangan semua dipakai):\n${internalLinks
+            .map((l) => `- [${l.title}](${l.url})`)
+            .join('\n')}\n`
+        : ''
     return `
 Kamu adalah penulis artikel teknologi profesional Indonesia.
 Tanggal hari ini: ${tanggal}. Tulis seolah-olah ditulis pada tahun ${year}.
 Jenis artikel: ${type.label} — ${type.description}.
-
+${voice ? `GAYA BRAND: ${voice}\n` : ''}
 KEYWORD UTAMA: ${keyword}
 OUTLINE:
 ${outline}
-
+${linksBlock}
 ATURAN:
 1. Bahasa Indonesia natural, tidak kaku
 2. Keyword dipakai natural: 1x di paragraf pembuka, 2-3x di seluruh body,
@@ -74,7 +86,8 @@ ATURAN:
 5. Buka dengan 1 paragraf hook ringkas yang merangkum isi (berfungsi sebagai
    meta/snippet) — tanpa heading "Pendahuluan".
 6. Sisipkan 1-2 tautan eksternal ke sumber tepercaya dalam format markdown
-   [teks](https://...), relevan dan tidak dipaksakan.
+   [teks](https://...), relevan dan tidak dipaksakan. Jika ada TAUTAN INTERNAL
+   di atas, sisipkan juga 1-3 yang relevan secara natural.
 7. Judul section natural & benefit-driven, TANPA penomoran ("1.", "1.1.").
 8. Sebelum kesimpulan, beri bagian "Poin Penting" berisi 3-5 bullet ringkasan.
 9. Bagian FAQ: tiap pertanyaan jadi H3 (###), jawaban singkat di bawahnya.

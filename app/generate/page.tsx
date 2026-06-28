@@ -67,6 +67,18 @@ function GenerateContent() {
   const [result, setResult] = useState<Article | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  type KeyStatus = { configured: boolean; ok: boolean; message: string }
+  const [apiStatus, setApiStatus] = useState<{ groq: KeyStatus; gemini: KeyStatus } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/health')
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.success) setApiStatus(j.data)
+      })
+      .catch(() => {})
+  }, [])
+
   const queryKeywordId = searchParams.get('keyword_id')
 
   useEffect(() => {
@@ -241,6 +253,30 @@ function GenerateContent() {
           </Card>
         ) : (
           <>
+            {/* API key status */}
+            {apiStatus && (
+              <Card>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6">
+                  <span className="text-sm font-medium text-gray-700">Status API</span>
+                  {(['groq', 'gemini'] as const).map((key) => {
+                    const s = apiStatus[key]
+                    const color = s.ok
+                      ? 'bg-green-500'
+                      : s.configured
+                        ? 'bg-red-500'
+                        : 'bg-gray-300'
+                    return (
+                      <span key={key} className="flex items-center gap-2 text-sm">
+                        <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
+                        <span className="font-medium capitalize text-gray-800">{key}</span>
+                        <span className="text-gray-400">— {s.message}</span>
+                      </span>
+                    )
+                  })}
+                </div>
+              </Card>
+            )}
+
             {/* Keyword selector */}
             <Card title="Pilih Keyword">
               {loadingKeywords ? (

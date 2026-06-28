@@ -1,6 +1,17 @@
 export type ArticleStatus = 'draft' | 'generated' | 'reviewed' | 'published'
 export type KeywordStatus = 'unused' | 'in_progress' | 'done'
 export type KeywordIntent = 'informational' | 'commercial'
+export type CronStatus = 'success' | 'partial' | 'failed'
+
+export interface CronLog {
+  id: string
+  run_at: string
+  status: CronStatus
+  generated: number
+  published: number
+  error_message?: string | null
+  articles_data?: { title: string; blogger_url: string | null }[] | null
+}
 
 export interface Keyword {
   id: string

@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import toast from 'react-hot-toast'
-import { ArrowLeft, ExternalLink, Trash2, Globe, Rss } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Trash2, Globe, Rss, Check, X } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
@@ -12,10 +12,11 @@ import Button from '@/components/ui/Button'
 import Loader from '@/components/ui/Loader'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import PublishMenu from '@/components/publish/PublishMenu'
+import { scoreArticle } from '@/lib/seo'
+import type { Article } from '@/types'
 
 const META_TITLE_LIMIT = 60
 const META_DESC_LIMIT = 155
-import type { Article } from '@/types'
 
 const markdownComponents = {
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -161,6 +162,20 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
       setDeleteOpen(false)
     }
   }
+
+  const seoReport = useMemo(
+    () =>
+      article
+        ? scoreArticle({
+            content: article.content,
+            keyword: article.keyword,
+            meta_title: metaTitle,
+            meta_description: metaDescription,
+            word_count: article.word_count
+          })
+        : null,
+    [article, metaTitle, metaDescription]
+  )
 
   if (loading) {
     return (
@@ -370,6 +385,45 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                 </Button>
               </div>
             </Card>
+
+            {/* SEO score */}
+            {seoReport && (
+              <Card title="Skor SEO" className="mt-6">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white ${
+                      seoReport.score >= 80
+                        ? 'bg-green-500'
+                        : seoReport.score >= 50
+                          ? 'bg-amber-500'
+                          : 'bg-red-500'
+                    }`}
+                  >
+                    {seoReport.score}
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    {seoReport.checks.filter((c) => c.pass).length}/{seoReport.checks.length} kriteria
+                    terpenuhi
+                  </p>
+                </div>
+
+                <ul className="mt-4 space-y-2">
+                  {seoReport.checks.map((c) => (
+                    <li key={c.label} className="flex items-start gap-2 text-sm">
+                      {c.pass ? (
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+                      ) : (
+                        <X className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                      )}
+                      <span className={c.pass ? 'text-gray-700' : 'text-gray-700'}>
+                        {c.label}
+                        {!c.pass && <span className="block text-xs text-gray-400">{c.detail}</span>}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
           </div>
         </div>
       </div>
