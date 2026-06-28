@@ -88,7 +88,11 @@ export async function groqComplete(
           model,
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.7,
-          max_tokens: maxTokens
+          max_tokens: maxTokens,
+          // Reasoning models (gpt-oss) burn extra output tokens on reasoning,
+          // which hits the per-minute output-token (OTPM) limit fast. Low
+          // effort keeps quality fine for article writing and saves tokens.
+          ...(model.includes('gpt-oss') ? { reasoning_effort: 'low' as const } : {})
         })
       )
     )
