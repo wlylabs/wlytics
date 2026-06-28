@@ -18,7 +18,7 @@ export async function getFeaturedImage(query: string): Promise<FeaturedImage | n
     })
     const res = await fetch(`https://api.openverse.org/v1/images/?${params.toString()}`, {
       headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(5000)
     })
     if (!res.ok) return null
 
