@@ -5,6 +5,7 @@ import { PROMPTS } from '@/lib/prompts'
 import { getArticleType } from '@/lib/articleTypes'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 // Streams newline-delimited JSON (NDJSON) events so the client can show real
 // per-step progress for the outline -> article -> meta -> save pipeline.
