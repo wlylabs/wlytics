@@ -51,12 +51,25 @@ create table if not exists analytics (
   created_at timestamptz default now()
 );
 
+-- Cron logs (auto-pilot run history)
+create table if not exists cron_logs (
+  id uuid default uuid_generate_v4() primary key,
+  run_at timestamptz default now(),
+  status text, -- 'success' | 'partial' | 'failed'
+  generated integer default 0,
+  published integer default 0,
+  error_message text,
+  articles_data jsonb
+);
+
 -- Indexes untuk performa
 create index if not exists idx_articles_status on articles(status);
 create index if not exists idx_articles_created_at on articles(created_at desc);
 create index if not exists idx_keywords_status on keywords(status);
+create index if not exists idx_cron_logs_run_at on cron_logs(run_at desc);
 
 -- Row Level Security (nonaktifkan untuk development)
 alter table keywords disable row level security;
 alter table articles disable row level security;
 alter table analytics disable row level security;
+alter table cron_logs disable row level security;

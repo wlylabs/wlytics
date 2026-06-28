@@ -136,7 +136,17 @@ export async function GET(req: Request) {
       if (i < keywords.length - 1) await delay(5000)
     }
 
-    // 5. Result
+    // 5. Result + log
+    const attempted = keywords.length
+    const status: 'success' | 'partial' | 'failed' =
+      attempted > 0 && published === attempted
+        ? 'success'
+        : published === 0
+          ? 'failed'
+          : 'partial'
+
+    await logRun({ status, generated, published, articles_data: articles, error_message: null })
+
     const payload = {
       success: true,
       generated,
@@ -150,7 +160,28 @@ export async function GET(req: Request) {
     // 6. Outer failure
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('[cron] fatal error:', message)
+    await logRun({
+      status: 'failed',
+      generated: 0,
+      published: 0,
+      articles_data: [],
+      error_message: message
+    })
     return NextResponse.json({ success: false, error: message }, { status: 500 })
+  }
+}
+
+async function logRun(entry: {
+  status: 'success' | 'partial' | 'failed'
+  generated: number
+  published: number
+  articles_data: { title: string; blogger_url: string | null }[]
+  error_message: string | null
+}) {
+  try {
+    await supabaseAdmin.from('cron_logs').insert(entry)
+  } catch (err) {
+    console.error('[cron] failed to write cron_logs:', err)
   }
 }
 

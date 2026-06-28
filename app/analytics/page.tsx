@@ -5,7 +5,25 @@ import { ExternalLink, Globe, Rss, Upload } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
-import type { Article, Keyword } from '@/types'
+import type { Article, Keyword, CronLog, CronStatus } from '@/types'
+
+const CRON_BADGE: Record<CronStatus, string> = {
+  success: 'bg-green-100 text-green-700',
+  partial: 'bg-amber-100 text-amber-700',
+  failed: 'bg-red-100 text-red-700'
+}
+
+function CronStatusBadge({ status }: { status: CronStatus }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+        CRON_BADGE[status] ?? 'bg-gray-100 text-gray-600'
+      }`}
+    >
+      {status}
+    </span>
+  )
+}
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('id-ID', {
@@ -40,19 +58,23 @@ function IntentBadge({ intent }: { intent: string }) {
 export default function AnalyticsPage() {
   const [articles, setArticles] = useState<Article[]>([])
   const [keywords, setKeywords] = useState<Keyword[]>([])
+  const [cronLogs, setCronLogs] = useState<CronLog[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
       try {
-        const [articlesRes, keywordsRes] = await Promise.all([
+        const [articlesRes, keywordsRes, logsRes] = await Promise.all([
           fetch('/api/articles'),
-          fetch('/api/keywords')
+          fetch('/api/keywords'),
+          fetch('/api/cron/logs')
         ])
         const articlesJson = await articlesRes.json()
         const keywordsJson = await keywordsRes.json()
+        const logsJson = await logsRes.json()
         if (articlesJson.success) setArticles(articlesJson.data ?? [])
         if (keywordsJson.success) setKeywords(keywordsJson.data ?? [])
+        if (logsJson.success) setCronLogs(logsJson.data ?? [])
       } catch (err) {
         console.error('Failed to load analytics', err)
       } finally {
@@ -199,6 +221,65 @@ export default function AnalyticsPage() {
             </div>
           </Card>
         </div>
+
+        {/* Auto-pilot history */}
+        <Card title="Riwayat Auto-pilot">
+          {cronLogs.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-500">
+              Belum ada riwayat auto-pilot.
+            </p>
+          ) : (
+            <>
+              {/* Desktop table */}
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
+                      <th className="pb-3 pr-4 font-medium">Tanggal</th>
+                      <th className="pb-3 pr-4 font-medium">Status</th>
+                      <th className="pb-3 pr-4 font-medium">Generated</th>
+                      <th className="pb-3 pr-4 font-medium">Published</th>
+                      <th className="pb-3 font-medium">Error</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {cronLogs.map((log) => (
+                      <tr key={log.id}>
+                        <td className="py-3 pr-4 text-gray-500">{formatDateTime(log.run_at)}</td>
+                        <td className="py-3 pr-4">
+                          <CronStatusBadge status={log.status} />
+                        </td>
+                        <td className="py-3 pr-4 text-gray-700">{log.generated}</td>
+                        <td className="py-3 pr-4 text-gray-700">{log.published}</td>
+                        <td className="max-w-xs py-3 text-gray-500">
+                          <span className="line-clamp-1">{log.error_message || '—'}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <ul className="space-y-3 sm:hidden">
+                {cronLogs.map((log) => (
+                  <li key={log.id} className="rounded-lg border border-gray-100 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm text-gray-500">{formatDateTime(log.run_at)}</span>
+                      <CronStatusBadge status={log.status} />
+                    </div>
+                    <p className="mt-2 text-sm text-gray-700">
+                      Generated {log.generated} · Published {log.published}
+                    </p>
+                    {log.error_message && (
+                      <p className="mt-1 text-xs text-red-600">{log.error_message}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </Card>
 
         {/* Status breakdown */}
         <Card title="Status Breakdown">
