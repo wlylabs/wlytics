@@ -95,6 +95,10 @@ ATURAN:
 11. Sisipkan [AFFILIATE_1] [AFFILIATE_2] [CTA_BOX] sesuai outline.
 12. Jika menyebut tahun, gunakan ${year} sebagai tahun terkini. JANGAN menyebut
     tahun yang sudah lewat (mis. 2023/2024) seolah-olah masa kini.
+13. TABEL (jika perlu): pakai nama produk/tool NYATA dan spesifik, JANGAN
+    placeholder generik ("Tool A", "Produk B"). Maksimal 4 kolom agar rapi di
+    layar HP, kolom pertama label baris. Tiap sel WAJIB terisi (pakai "Ya"/
+    "Tidak" atau "—", jangan ada sel kosong). Jangan bikin baris tanpa nilai.
 
 TONE: Informatif, friendly, kredibel
 PANJANG: ${type.panjang}
