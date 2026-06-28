@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload, Play } from 'lucide-react'
+import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
 import type { Article, Keyword, CronLog, CronStatus } from '@/types'
 
 const CRON_BADGE: Record<CronStatus, string> = {
@@ -60,29 +62,54 @@ export default function AnalyticsPage() {
   const [keywords, setKeywords] = useState<Keyword[]>([])
   const [cronLogs, setCronLogs] = useState<CronLog[]>([])
   const [loading, setLoading] = useState(true)
+  const [running, setRunning] = useState(false)
+
+  async function loadData() {
+    try {
+      const [articlesRes, keywordsRes, logsRes] = await Promise.all([
+        fetch('/api/articles'),
+        fetch('/api/keywords'),
+        fetch('/api/cron/logs')
+      ])
+      const articlesJson = await articlesRes.json()
+      const keywordsJson = await keywordsRes.json()
+      const logsJson = await logsRes.json()
+      if (articlesJson.success) setArticles(articlesJson.data ?? [])
+      if (keywordsJson.success) setKeywords(keywordsJson.data ?? [])
+      if (logsJson.success) setCronLogs(logsJson.data ?? [])
+    } catch (err) {
+      console.error('Failed to load analytics', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    async function load() {
-      try {
-        const [articlesRes, keywordsRes, logsRes] = await Promise.all([
-          fetch('/api/articles'),
-          fetch('/api/keywords'),
-          fetch('/api/cron/logs')
-        ])
-        const articlesJson = await articlesRes.json()
-        const keywordsJson = await keywordsRes.json()
-        const logsJson = await logsRes.json()
-        if (articlesJson.success) setArticles(articlesJson.data ?? [])
-        if (keywordsJson.success) setKeywords(keywordsJson.data ?? [])
-        if (logsJson.success) setCronLogs(logsJson.data ?? [])
-      } catch (err) {
-        console.error('Failed to load analytics', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
+    loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  async function handleRunNow() {
+    setRunning(true)
+    try {
+      const res = await fetch('/api/cron/auto-publish', {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET ?? ''}`
+        }
+      })
+      const json = await res.json()
+      if (res.ok && json.success) {
+        toast.success('✅ Auto-pilot berhasil! Artikel baru sudah dipublish ke Blogger')
+        await loadData()
+      } else {
+        toast.error(json.error ?? 'Auto-pilot gagal')
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Auto-pilot gagal')
+    } finally {
+      setRunning(false)
+    }
+  }
 
   const stats = useMemo(() => {
     const published = articles.filter((a) => a.status === 'published').length
@@ -223,7 +250,26 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Auto-pilot history */}
-        <Card title="Riwayat Auto-pilot">
+        <Card>
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Riwayat Auto-pilot</h3>
+            <div className="sm:text-right">
+              <Button
+                variant="primary"
+                size="sm"
+                loading={running}
+                disabled={running}
+                onClick={handleRunNow}
+              >
+                <Play className="h-4 w-4" />
+                Jalankan Sekarang
+              </Button>
+              <p className="mt-1 text-xs text-gray-400">
+                Cron otomatis jalan setiap hari 08.00 WIB
+              </p>
+            </div>
+          </div>
+
           {cronLogs.length === 0 ? (
             <p className="py-8 text-center text-sm text-gray-500">
               Belum ada riwayat auto-pilot.
