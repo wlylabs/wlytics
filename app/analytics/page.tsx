@@ -15,14 +15,20 @@ const CRON_BADGE: Record<CronStatus, string> = {
   failed: 'bg-red-100 text-red-700'
 }
 
+const CRON_LABEL: Record<CronStatus, string> = {
+  success: 'Berhasil',
+  partial: 'Sebagian',
+  failed: 'Gagal'
+}
+
 function CronStatusBadge({ status }: { status: CronStatus }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
         CRON_BADGE[status] ?? 'bg-gray-100 text-gray-600'
       }`}
     >
-      {status}
+      {CRON_LABEL[status] ?? status}
     </span>
   )
 }
@@ -199,16 +205,16 @@ export default function AnalyticsPage() {
   }
 
   const overviewCards = [
-    { label: 'Artikel Published', value: stats.published },
-    { label: 'Artikel Generated', value: stats.generated },
-    { label: 'Keywords Used', value: stats.keywordsUsed },
-    { label: 'Keywords Tersisa', value: stats.keywordsLeft }
+    { label: 'Artikel Terbit', value: stats.published, dot: 'bg-green-500' },
+    { label: 'Siap Publish', value: stats.generated, dot: 'bg-blue-500' },
+    { label: 'Keyword Dipakai', value: stats.keywordsUsed, dot: 'bg-violet-500' },
+    { label: 'Keyword Tersisa', value: stats.keywordsLeft, dot: 'bg-gray-400' }
   ]
 
   const breakdown = [
-    { label: 'Draft', value: stats.draft, bar: 'bg-gray-400' },
-    { label: 'Generated', value: stats.generated, bar: 'bg-blue-500' },
-    { label: 'Published', value: stats.published, bar: 'bg-green-500' }
+    { label: 'Draf', value: stats.draft, bar: 'bg-gray-400' },
+    { label: 'Siap publish', value: stats.generated, bar: 'bg-blue-500' },
+    { label: 'Terbit', value: stats.published, bar: 'bg-green-500' }
   ]
 
   return (
@@ -220,8 +226,11 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {overviewCards.map((c) => (
             <Card key={c.label}>
-              <p className="text-sm text-gray-500">{c.label}</p>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">{c.value}</p>
+              <div className="flex items-center gap-2">
+                <span className={`h-2 w-2 rounded-full ${c.dot}`} />
+                <p className="text-sm text-gray-500">{c.label}</p>
+              </div>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-gray-900">{c.value}</p>
             </Card>
           ))}
         </div>
@@ -230,7 +239,7 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Card>
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                 <Globe className="h-6 w-6" />
               </div>
               <div>
@@ -244,7 +253,7 @@ export default function AnalyticsPage() {
           </Card>
           <Card>
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
                 <Rss className="h-6 w-6" />
               </div>
               <div>
@@ -258,7 +267,7 @@ export default function AnalyticsPage() {
           </Card>
           <Card>
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-gray-500">
                 <Upload className="h-6 w-6" />
               </div>
               <div>
