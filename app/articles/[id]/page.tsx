@@ -278,26 +278,26 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
           <div className="space-y-6 lg:col-span-2">
             {/* Meta info bar */}
             <Card>
-              <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
-                <div>
-                  <dt className="text-xs uppercase tracking-wide text-gray-400">Keyword</dt>
-                  <dd className="mt-0.5 font-medium text-gray-800">{article.keyword}</dd>
+              <div className="grid grid-cols-1 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
+                <div className="min-w-0">
+                  <p className="text-xs uppercase tracking-wide text-gray-400">Keyword</p>
+                  <p className="mt-0.5 break-words font-medium text-gray-800">{article.keyword}</p>
                 </div>
-                <div>
-                  <dt className="text-xs uppercase tracking-wide text-gray-400">Kategori</dt>
-                  <dd className="mt-0.5 font-medium text-gray-800">{article.kategori}</dd>
+                <div className="min-w-0">
+                  <p className="text-xs uppercase tracking-wide text-gray-400">Kategori</p>
+                  <p className="mt-0.5 break-words font-medium text-gray-800">{article.kategori}</p>
                 </div>
-                <div>
-                  <dt className="text-xs uppercase tracking-wide text-gray-400">Word count</dt>
-                  <dd className="mt-0.5 font-medium text-gray-800">{article.word_count}</dd>
+                <div className="min-w-0">
+                  <p className="text-xs uppercase tracking-wide text-gray-400">Word count</p>
+                  <p className="mt-0.5 font-medium text-gray-800">{article.word_count}</p>
                 </div>
-                <div>
-                  <dt className="text-xs uppercase tracking-wide text-gray-400">Tanggal</dt>
-                  <dd className="mt-0.5 font-medium text-gray-800">{formatDate(article.created_at)}</dd>
+                <div className="min-w-0">
+                  <p className="text-xs uppercase tracking-wide text-gray-400">Tanggal</p>
+                  <p className="mt-0.5 font-medium text-gray-800">{formatDate(article.created_at)}</p>
                 </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <dt className="text-xs uppercase tracking-wide text-gray-400">Tags</dt>
-                  <dd className="mt-1 flex flex-wrap gap-1.5">
+                <div className="min-w-0 sm:col-span-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-400">Tags</p>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
                     {article.tags?.map((tag) => (
                       <span
                         key={tag}
@@ -306,9 +306,9 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                         #{tag}
                       </span>
                     ))}
-                  </dd>
+                  </div>
                 </div>
-              </dl>
+              </div>
             </Card>
 
             {/* Article body */}
