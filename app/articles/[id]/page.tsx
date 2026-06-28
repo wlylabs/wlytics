@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import toast from 'react-hot-toast'
-import { ArrowLeft, ExternalLink, Upload, Trash2 } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Trash2, Globe, Rss } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Loader from '@/components/ui/Loader'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
-import { parseJson } from '@/lib/http'
+import PublishMenu from '@/components/publish/PublishMenu'
 
 const META_TITLE_LIMIT = 60
 const META_DESC_LIMIT = 155
@@ -65,7 +65,6 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
   const [kategori, setKategori] = useState('')
   const [tags, setTags] = useState('')
   const [saving, setSaving] = useState(false)
-  const [publishing, setPublishing] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -163,32 +162,6 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
     }
   }
 
-  async function handlePublish() {
-    if (!article) return
-    setPublishing(true)
-    try {
-      const res = await fetch('/api/publish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ article_id: article.id })
-      })
-      const json = await parseJson<{ success: boolean; wp_url?: string; error?: string }>(res)
-      if (json.success) {
-        toast.success('Artikel berhasil dipublish!')
-        setArticle((prev) =>
-          prev ? { ...prev, status: 'published', wp_url: json.wp_url } : prev
-        )
-      } else {
-        toast.error(json.error ?? 'Gagal publish artikel')
-      }
-    } catch (err) {
-      console.error(err)
-      toast.error(err instanceof Error ? err.message : 'Gagal publish artikel')
-    } finally {
-      setPublishing(false)
-    }
-  }
-
   if (loading) {
     return (
       <>
@@ -217,8 +190,6 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
     )
   }
 
-  const isPublished = article.status === 'published'
-
   return (
     <>
       <Header title={article.title} subtitle={`Keyword: ${article.keyword}`} />
@@ -231,23 +202,38 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
             Kembali
           </Button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Badge status={article.status} />
-            {isPublished && article.wp_url ? (
+            {article.wp_url && (
               <a
                 href={article.wp_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700"
               >
-                Lihat di WordPress
-                <ExternalLink className="h-4 w-4" />
+                <Globe className="h-4 w-4" />
+                WordPress
+                <ExternalLink className="h-3.5 w-3.5" />
               </a>
-            ) : (
-              <Button variant="primary" onClick={handlePublish} loading={publishing} disabled={publishing}>
-                <Upload className="h-4 w-4" />
-                Publish ke WordPress
-              </Button>
+            )}
+            {article.blogger_url && (
+              <a
+                href={article.blogger_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-600 hover:text-orange-700"
+              >
+                <Rss className="h-4 w-4" />
+                Blogger
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            )}
+            {!(article.wp_url && article.blogger_url) && (
+              <PublishMenu
+                article={article}
+                size="md"
+                onUpdated={(patch) => setArticle((prev) => (prev ? { ...prev, ...patch } : prev))}
+              />
             )}
           </div>
         </div>
