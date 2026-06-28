@@ -36,10 +36,19 @@ export async function POST(req: Request) {
         const outline = await groqComplete(PROMPTS.generate_outline(keyword, type))
         send({ type: 'step', index: 0, status: 'done' })
 
-        // Step 2: Article
+        // Step 2: Article (Gemini, with Groq fallback if Gemini is
+        // rate-limited / unavailable so generation keeps working).
         current = 1
         send({ type: 'step', index: 1, status: 'loading' })
-        const content = await geminiComplete(PROMPTS.generate_article(keyword, outline, type))
+        const articlePrompt = PROMPTS.generate_article(keyword, outline, type)
+        let content: string
+        try {
+          content = await geminiComplete(articlePrompt)
+        } catch (geminiErr) {
+          console.warn('Gemini failed, falling back to Groq:', geminiErr)
+          send({ type: 'notice', message: 'Gemini limit/issue — beralih ke Groq…' })
+          content = await groqComplete(articlePrompt, undefined, 8192)
+        }
         send({ type: 'step', index: 1, status: 'done' })
 
         // Step 3: Meta

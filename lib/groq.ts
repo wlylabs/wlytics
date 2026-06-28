@@ -37,7 +37,8 @@ function friendlyError(err: unknown, model: string): Error {
 
 export async function groqComplete(
   prompt: string,
-  model = DEFAULT_MODEL
+  model = DEFAULT_MODEL,
+  maxTokens = 4096
 ): Promise<string> {
   try {
     const groq = getClient()
@@ -46,7 +47,7 @@ export async function groqComplete(
         model,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
-        max_tokens: 4096
+        max_tokens: maxTokens
       })
     )
     return res.choices[0]?.message?.content ?? ''

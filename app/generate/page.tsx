@@ -37,6 +37,7 @@ type StreamEvent =
   | { type: 'step'; index: number; status: StepStatus }
   | { type: 'done'; data: Article }
   | { type: 'error'; index: number; error: string }
+  | { type: 'notice'; message: string }
 
 function StepIcon({ status }: { status: StepStatus }) {
   switch (status) {
@@ -115,7 +116,9 @@ function GenerateContent() {
   }, [suggestedType, typeTouched])
 
   function applyEvent(event: StreamEvent) {
-    if (event.type === 'step') {
+    if (event.type === 'notice') {
+      toast(event.message, { icon: 'ℹ️' })
+    } else if (event.type === 'step') {
       setSteps((prev) => {
         const next = [...prev]
         next[event.index] = event.status
