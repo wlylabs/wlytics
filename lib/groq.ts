@@ -60,18 +60,46 @@ export async function groqFast(prompt: string, maxTokens = 4096): Promise<string
   return groqComplete(prompt, FAST_MODEL, maxTokens)
 }
 
-export type KeyStatus = { configured: boolean; ok: boolean; message: string }
+export type KeyStatus = {
+  configured: boolean
+  available: boolean
+  message: string
+  remaining?: string | null
+}
 
-// Verify the Groq key via models.list() — an auth check that does NOT spend
-// generation quota.
+// Probe with a 1-token completion and read Groq's rate-limit headers to report
+// whether the key is currently usable (limit tersedia) or rate-limited.
 export async function checkGroqKey(): Promise<KeyStatus> {
   if (!process.env.GROQ_API_KEY) {
-    return { configured: false, ok: false, message: 'GROQ_API_KEY belum diset' }
+    return { configured: false, available: false, message: 'Key belum diset' }
   }
   try {
-    await getClient().models.list()
-    return { configured: true, ok: true, message: 'API key valid' }
+    const { response } = await getClient()
+      .chat.completions.create({
+        model: FAST_MODEL,
+        messages: [{ role: 'user', content: 'ping' }],
+        max_tokens: 1
+      })
+      .withResponse()
+
+    const remaining = response.headers.get('x-ratelimit-remaining-requests')
+    return {
+      configured: true,
+      available: true,
+      remaining,
+      message: remaining ? `Tersedia · ${remaining} request tersisa` : 'Tersedia'
+    }
   } catch (err) {
-    return { configured: true, ok: false, message: friendlyError(err, DEFAULT_MODEL).message }
+    const status = (err as { status?: number })?.status
+    const raw = err instanceof Error ? err.message : ''
+    if (status === 429 || /rate limit|quota|too many requests/i.test(raw)) {
+      const m = raw.match(/try again in ([\d.]+)s/i) ?? raw.match(/([\d.]+)s/)
+      return {
+        configured: true,
+        available: false,
+        message: `Limit tercapai${m ? `, coba lagi ~${Math.ceil(parseFloat(m[1]))} detik` : ''}`
+      }
+    }
+    return { configured: true, available: false, message: friendlyError(err, FAST_MODEL).message }
   }
 }

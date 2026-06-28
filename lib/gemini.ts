@@ -48,28 +48,34 @@ export async function geminiComplete(prompt: string): Promise<string> {
   }
 }
 
-export type KeyStatus = { configured: boolean; ok: boolean; message: string }
+export type KeyStatus = {
+  configured: boolean
+  available: boolean
+  message: string
+  remaining?: string | null
+}
 
-// Verify the Gemini key by listing models — an auth check that does NOT spend
-// the (small) generation quota.
+// Gemini doesn't expose remaining quota cheaply (you only learn the limit by
+// hitting a 429 on a real call, which would burn the small free quota). So we
+// only verify validity here and label it as the fallback engine.
 export async function checkGeminiKey(): Promise<KeyStatus> {
   if (!process.env.GEMINI_API_KEY) {
-    return { configured: false, ok: false, message: 'GEMINI_API_KEY belum diset' }
+    return { configured: false, available: false, message: 'Key belum diset' }
   }
   try {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`,
       { signal: AbortSignal.timeout(8000) }
     )
-    if (res.ok) return { configured: true, ok: true, message: 'API key valid' }
+    if (res.ok) return { configured: true, available: true, message: 'Valid (fallback)' }
     if (res.status === 400 || res.status === 403) {
-      return { configured: true, ok: false, message: 'API key tidak valid' }
+      return { configured: true, available: false, message: 'Key tidak valid' }
     }
-    return { configured: true, ok: false, message: `Gemini error (HTTP ${res.status})` }
+    return { configured: true, available: false, message: `Gemini error (HTTP ${res.status})` }
   } catch (err) {
     return {
       configured: true,
-      ok: false,
+      available: false,
       message: err instanceof Error ? err.message : 'Gagal memeriksa Gemini'
     }
   }
