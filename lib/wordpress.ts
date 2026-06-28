@@ -1,3 +1,5 @@
+import { markdownToHtml } from '@/lib/markdown'
+
 function getConfig() {
   const url = process.env.WP_URL
   const username = process.env.WP_USERNAME
@@ -22,6 +24,10 @@ export async function publishToWordPress(article: {
   const { url, credentials } = getConfig()
   const endpoint = `${url}/wp-json/wp/v2/posts`
 
+  // Articles are stored as markdown; WordPress renders raw markdown as literal
+  // text, so convert to clean HTML (same pipeline as Blogger) before sending.
+  const htmlContent = markdownToHtml(article.content)
+
   let res: Response
   try {
     res = await fetch(endpoint, {
@@ -32,7 +38,7 @@ export async function publishToWordPress(article: {
       },
       body: JSON.stringify({
         title: article.title,
-        content: article.content,
+        content: htmlContent,
         slug: article.slug,
         status: 'publish',
         meta: { yoast_wpseo_metadesc: article.meta_description }
