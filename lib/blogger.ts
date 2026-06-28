@@ -1,4 +1,25 @@
 import { google } from 'googleapis'
+import { marked } from 'marked'
+
+marked.setOptions({ gfm: true, breaks: false })
+
+// Convert article markdown into clean, semantic HTML for Blogger. Uses a real
+// markdown parser (handles lists, tables, hr, blockquotes, links) instead of
+// fragile regex, and removes artifacts that look unprofessional.
+function markdownToHtml(markdown: string): string {
+  const cleaned = markdown
+    .replace(/\r\n/g, '\n')
+    .replace(/^#[ \t]+.+\n?/, '') // drop the first H1 (already the post title)
+    .replace(/^#{1,6}[ \t]*$/gm, '') // strip empty heading markers (stray "#")
+    .replace(/^#[ \t]+/gm, '## ') // demote any remaining H1 to H2 (one H1 per page)
+    .replace(/\[AFFILIATE_1\]/g, '')
+    .replace(/\[AFFILIATE_2\]/g, '')
+    .replace(/\[CTA_BOX\]/g, '')
+    .replace(/\n{3,}/g, '\n\n') // collapse extra blank lines
+    .trim()
+
+  return (marked.parse(cleaned, { async: false }) as string).trim()
+}
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
@@ -21,20 +42,7 @@ export async function publishToBlogger(post: {
   tags: string[]
   labels?: string[]
 }) {
-  // Convert markdown ke HTML sederhana
-  const htmlContent = post.content
-    .replace(/^# .+\n/, '') // hapus H1 pertama (judul sudah ada di field title)
-    .replace(/## (.*)/g, '<h2>$1</h2>')
-    .replace(/### (.*)/g, '<h3>$1</h3>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^\s*/, '<p>')
-    .replace(/\s*$/, '</p>')
-    // Hapus placeholder
-    .replace(/\[AFFILIATE_1\]/g, '')
-    .replace(/\[AFFILIATE_2\]/g, '')
-    .replace(/\[CTA_BOX\]/g, '')
+  const htmlContent = markdownToHtml(post.content)
 
   const response = await blogger.posts.insert({
     blogId: process.env.BLOGGER_BLOG_ID!,
