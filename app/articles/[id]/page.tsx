@@ -40,7 +40,7 @@ const markdownComponents = {
     <ol className="mb-4 list-decimal space-y-1 pl-6 text-gray-700" {...props} />
   ),
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a className="text-indigo-600 underline hover:text-indigo-700" {...props} />
+    <a className="text-violet-600 underline hover:text-violet-700" {...props} />
   )
 }
 
@@ -209,7 +209,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                 href={article.wp_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
               >
                 <Globe className="h-4 w-4" />
                 WordPress
@@ -293,7 +293,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                   <input
                     value={metaTitle}
                     onChange={(e) => setMetaTitle(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   />
                   <p
                     className={`mt-1 text-xs ${
@@ -310,7 +310,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                     value={metaDescription}
                     onChange={(e) => setMetaDescription(e.target.value)}
                     rows={3}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   />
                   <p
                     className={`mt-1 text-xs ${
@@ -326,7 +326,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                   <input
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   />
                 </div>
 
@@ -335,7 +335,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                   <input
                     value={kategori}
                     onChange={(e) => setKategori(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   />
                 </div>
 
@@ -345,7 +345,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
                     placeholder="pisahkan dengan koma"
-                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   />
                   <p className="mt-1 text-xs text-gray-400">Pisahkan tiap tag dengan koma.</p>
                 </div>

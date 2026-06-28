@@ -41,7 +41,7 @@ type StreamEvent =
 function StepIcon({ status }: { status: StepStatus }) {
   switch (status) {
     case 'loading':
-      return <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
+      return <Loader2 className="h-5 w-5 animate-spin text-violet-600" />
     case 'done':
       return <CheckCircle2 className="h-5 w-5 text-green-600" />
     case 'error':
@@ -247,7 +247,7 @@ function GenerateContent() {
                   Tidak ada keyword dengan status unused.{' '}
                   <button
                     onClick={() => router.push('/keywords')}
-                    className="font-medium text-indigo-600 hover:text-indigo-700"
+                    className="font-medium text-violet-600 hover:text-violet-700"
                   >
                     Research keyword dulu →
                   </button>
@@ -258,7 +258,7 @@ function GenerateContent() {
                     value={selectedId}
                     onChange={(e) => setSelectedId(e.target.value)}
                     disabled={generating}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 disabled:opacity-50"
                   >
                     <option value="">— Pilih keyword —</option>
                     {keywords.map((kw) => (
@@ -310,7 +310,7 @@ function GenerateContent() {
                       aria-pressed={isSelected}
                       className={`rounded-lg border p-4 text-left transition-all duration-150 active:scale-[0.99] disabled:opacity-50 ${
                         isSelected
-                          ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
+                          ? 'border-violet-500 bg-violet-50 ring-1 ring-violet-500'
                           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
@@ -325,7 +325,7 @@ function GenerateContent() {
                         </span>
                         <span
                           className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                            isSelected ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'
+                            isSelected ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600'
                           }`}
                         >
                           {type.wordTarget}

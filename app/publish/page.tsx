@@ -375,7 +375,7 @@ export default function PublishPage() {
                           checked={allSelected}
                           onChange={toggleSelectAll}
                           disabled={bloggerEligible.length === 0 || bulkPublishing}
-                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
                         />
                       </th>
                       <th className="pb-3 pr-4 font-medium">Judul</th>
@@ -394,7 +394,7 @@ export default function PublishPage() {
                             checked={selected.has(article.id)}
                             onChange={() => toggleSelect(article.id)}
                             disabled={!!article.blogger_url || bulkPublishing}
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-40"
+                            className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 disabled:opacity-40"
                           />
                         </td>
                         <td className="max-w-xs py-3 pr-4 font-medium text-gray-900">
@@ -409,7 +409,7 @@ export default function PublishPage() {
                               href={article.wp_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-700"
+                              className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700"
                             >
                               Lihat <ExternalLink className="h-3.5 w-3.5" />
                             </a>
@@ -466,7 +466,7 @@ export default function PublishPage() {
                         checked={selected.has(article.id)}
                         onChange={() => toggleSelect(article.id)}
                         disabled={!!article.blogger_url || bulkPublishing}
-                        className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-40"
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 disabled:opacity-40"
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
@@ -482,7 +482,7 @@ export default function PublishPage() {
                               href={article.wp_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600"
+                              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600"
                             >
                               <Globe className="h-3.5 w-3.5" /> WordPress
                             </a>
