@@ -9,7 +9,6 @@ import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
-import PublishMenu from '@/components/publish/PublishMenu'
 import type { Article } from '@/types'
 
 type Filter = 'all' | 'draft' | 'generated' | 'published'
@@ -66,10 +65,6 @@ export default function ArticlesPage() {
     }),
     [articles]
   )
-
-  function patchArticle(id: string, patch: Partial<Article>) {
-    setArticles((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)))
-  }
 
   return (
     <>
@@ -160,19 +155,16 @@ export default function ArticlesPage() {
                   {article.word_count} kata · {formatDate(article.created_at)}
                 </p>
 
-                <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+                <div className="mt-4 border-t border-gray-100 pt-4">
                   <Button
                     variant="secondary"
                     size="sm"
+                    className="w-full justify-center"
                     onClick={() => router.push(`/articles/${article.id}`)}
                   >
                     <Eye className="h-4 w-4" />
-                    Preview
+                    Preview & Publish
                   </Button>
-                  <PublishMenu
-                    article={article}
-                    onUpdated={(patch) => patchArticle(article.id, patch)}
-                  />
                 </div>
               </Card>
             ))}
