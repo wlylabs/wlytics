@@ -1,8 +1,6 @@
 import { google } from 'googleapis'
-import { marked } from 'marked'
+import { markdownToHtml } from '@/lib/markdown'
 import { getFeaturedImage } from '@/lib/images'
-
-marked.setOptions({ gfm: true, breaks: false })
 
 function escapeAttr(value: string) {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -10,24 +8,6 @@ function escapeAttr(value: string) {
 
 function escapeHtml(value: string) {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-// Convert article markdown into clean, semantic HTML for Blogger. Uses a real
-// markdown parser (handles lists, tables, hr, blockquotes, links) instead of
-// fragile regex, and removes artifacts that look unprofessional.
-function markdownToHtml(markdown: string): string {
-  const cleaned = markdown
-    .replace(/\r\n/g, '\n')
-    .replace(/^#[ \t]+.+\n?/, '') // drop the first H1 (already the post title)
-    .replace(/^#{1,6}[ \t]*$/gm, '') // strip empty heading markers (stray "#")
-    .replace(/^#[ \t]+/gm, '## ') // demote any remaining H1 to H2 (one H1 per page)
-    .replace(/\[AFFILIATE_1\]/g, '')
-    .replace(/\[AFFILIATE_2\]/g, '')
-    .replace(/\[CTA_BOX\]/g, '')
-    .replace(/\n{3,}/g, '\n\n') // collapse extra blank lines
-    .trim()
-
-  return (marked.parse(cleaned, { async: false }) as string).trim()
 }
 
 // Build a featured-image <figure> with attribution. Blogger uses the first
