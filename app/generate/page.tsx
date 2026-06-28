@@ -283,12 +283,12 @@ function GenerateContent() {
                 <Loader text="Memuat keywords..." />
               ) : keywords.length === 0 ? (
                 <p className="text-sm text-gray-500">
-                  Tidak ada keyword dengan status unused.{' '}
+                  Semua keyword sudah dipakai.{' '}
                   <button
                     onClick={() => router.push('/keywords')}
                     className="font-medium text-violet-600 hover:text-violet-700"
                   >
-                    Research keyword dulu →
+                    Research keyword baru dulu →
                   </button>
                 </p>
               ) : (
