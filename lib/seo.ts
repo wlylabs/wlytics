@@ -7,6 +7,35 @@ const TITLE_LIMIT = 60
 const DESC_MIN = 120
 const DESC_LIMIT = 155
 
+// Words that carry no SEO weight and shouldn't be required in a title.
+const STOPWORDS = new Set([
+  'untuk', 'dan', 'atau', 'di', 'ke', 'dari', 'yang', 'dengan', 'pada', 'vs',
+  'the', 'a', 'an', 'of', 'for', 'to', 'in', 'on'
+])
+
+// Significant words of a keyword: drop stopwords and trivial 1-2 char tokens,
+// but keep short model/spec tokens that contain a digit (e.g. "i5", "i7").
+function coreTokens(keyword: string): string[] {
+  return keyword
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t && !STOPWORDS.has(t) && (t.length >= 3 || /\d/.test(t)))
+}
+
+// Long-tail keywords rarely fit verbatim in a ≤60-char title, so a literal
+// substring match is the wrong test. Pass if the target contains the keyword
+// exactly OR covers a strong majority of its core words.
+function keywordCovered(keyword: string, target: string): { pass: boolean; ratio: number } {
+  const t = target.toLowerCase()
+  if (!keyword) return { pass: false, ratio: 0 }
+  if (t.includes(keyword.toLowerCase())) return { pass: true, ratio: 1 }
+  const tokens = coreTokens(keyword)
+  if (tokens.length === 0) return { pass: false, ratio: 0 }
+  const present = tokens.filter((tok) => t.includes(tok)).length
+  const ratio = present / tokens.length
+  return { pass: ratio >= 0.6, ratio }
+}
+
 export function scoreArticle(article: {
   content: string
   keyword: string
@@ -28,11 +57,14 @@ export function scoreArticle(article: {
   const metaTitle = article.meta_title ?? ''
   const metaDesc = article.meta_description ?? ''
 
+  const titleKeyword = keywordCovered(keyword, metaTitle)
+  const first100Keyword = keywordCovered(keyword, first100)
+
   const checks: SeoCheck[] = [
     {
       label: 'Keyword di meta title',
-      pass: !!keyword && metaTitle.toLowerCase().includes(keyword),
-      detail: 'Meta title sebaiknya mengandung keyword utama.'
+      pass: titleKeyword.pass,
+      detail: 'Meta title sebaiknya mengandung kata inti keyword utama.'
     },
     {
       label: 'Meta title ≤ 60 karakter',
@@ -46,7 +78,7 @@ export function scoreArticle(article: {
     },
     {
       label: 'Keyword di 100 kata pertama',
-      pass: !!keyword && first100.includes(keyword),
+      pass: first100Keyword.pass,
       detail: 'Munculkan keyword di paragraf pembuka.'
     },
     {
