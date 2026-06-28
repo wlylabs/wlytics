@@ -13,7 +13,7 @@ export default function Header({ title, subtitle, badge }: HeaderProps) {
       </div>
 
       {badge && (
-        <span className="inline-flex shrink-0 items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200 sm:text-sm">
+        <span className="inline-flex shrink-0 items-center rounded-full bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700 ring-1 ring-inset ring-violet-200 sm:text-sm">
           {badge}
         </span>
       )}

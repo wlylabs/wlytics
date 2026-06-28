@@ -82,7 +82,7 @@ export default function DashboardPage() {
       label: 'Total Artikel',
       value: stats?.total_articles ?? 0,
       icon: FileText,
-      color: 'text-indigo-600 bg-indigo-50'
+      color: 'text-violet-600 bg-violet-50'
     },
     {
       label: 'Published',
@@ -126,7 +126,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">
           <Card>
             <div className="flex items-center gap-2 text-gray-900">
-              <Search className="h-5 w-5 text-indigo-600" />
+              <Search className="h-5 w-5 text-violet-600" />
               <h3 className="text-lg font-semibold">Research Keywords</h3>
             </div>
             <p className="mt-1 text-sm text-gray-500">Generate 10 keyword teknologi baru</p>
@@ -137,7 +137,7 @@ export default function DashboardPage() {
 
           <Card>
             <div className="flex items-center gap-2 text-gray-900">
-              <Sparkles className="h-5 w-5 text-indigo-600" />
+              <Sparkles className="h-5 w-5 text-violet-600" />
               <h3 className="text-lg font-semibold">Generate Artikel</h3>
             </div>
             <p className="mt-1 text-sm text-gray-500">Buat artikel dari keyword yang ada</p>
@@ -151,7 +151,7 @@ export default function DashboardPage() {
         <Card>
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Artikel Terbaru</h3>
-            <Link href="/articles" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+            <Link href="/articles" className="text-sm font-medium text-violet-600 hover:text-violet-700">
               Lihat Semua →
             </Link>
           </div>
@@ -193,7 +193,7 @@ export default function DashboardPage() {
                     <div className="flex items-start justify-between gap-3">
                       <Link
                         href={`/articles/${article.id}`}
-                        className="font-medium text-gray-900 hover:text-indigo-600"
+                        className="font-medium text-gray-900 hover:text-violet-600"
                       >
                         {article.title}
                       </Link>

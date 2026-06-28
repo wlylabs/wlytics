@@ -256,7 +256,7 @@ export default function AnalyticsPage() {
                             href={article.wp_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-700"
+                            className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700"
                           >
                             Lihat
                             <ExternalLink className="h-3.5 w-3.5" />
@@ -305,7 +305,7 @@ export default function AnalyticsPage() {
                         href={article.wp_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
                       >
                         <Globe className="h-3.5 w-3.5" /> WordPress
                       </a>
