@@ -47,7 +47,8 @@ export async function POST(req: Request) {
         const result = await publishToBlogger({
           title: article.title,
           content: article.content,
-          tags: article.tags ?? []
+          tags: article.tags ?? [],
+          keyword: article.keyword
         })
 
         // 6. Persist

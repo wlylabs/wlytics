@@ -1,7 +1,16 @@
 import { google } from 'googleapis'
 import { marked } from 'marked'
+import { getFeaturedImage } from '@/lib/images'
 
 marked.setOptions({ gfm: true, breaks: false })
+
+function escapeAttr(value: string) {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
 
 // Convert article markdown into clean, semantic HTML for Blogger. Uses a real
 // markdown parser (handles lists, tables, hr, blockquotes, links) instead of
@@ -19,6 +28,19 @@ function markdownToHtml(markdown: string): string {
     .trim()
 
   return (marked.parse(cleaned, { async: false }) as string).trim()
+}
+
+// Build a featured-image <figure> with attribution. Blogger uses the first
+// image in the post as its thumbnail.
+function featuredImageHtml(image: NonNullable<Awaited<ReturnType<typeof getFeaturedImage>>>) {
+  const credit = image.creator
+    ? `<figcaption style="font-size:12px;color:#6b7280;margin-top:6px;">Foto: ${escapeHtml(image.creator)}${
+        image.license ? ` (${escapeHtml(image.license)})` : ''
+      }${image.source ? ` via ${escapeHtml(image.source)}` : ''}</figcaption>`
+    : ''
+  return `<figure style="margin:0 0 24px;"><img src="${escapeAttr(image.url)}" alt="${escapeAttr(
+    image.title
+  )}" style="width:100%;height:auto;border-radius:8px;" />${credit}</figure>`
 }
 
 const oauth2Client = new google.auth.OAuth2(
@@ -41,8 +63,13 @@ export async function publishToBlogger(post: {
   content: string
   tags: string[]
   labels?: string[]
+  keyword?: string
 }) {
-  const htmlContent = markdownToHtml(post.content)
+  const body = markdownToHtml(post.content)
+
+  // Prepend a relevant featured image (best-effort; never blocks publishing).
+  const image = await getFeaturedImage(post.keyword || post.tags[0] || post.title)
+  const htmlContent = image ? featuredImageHtml(image) + body : body
 
   const response = await blogger.posts.insert({
     blogId: process.env.BLOGGER_BLOG_ID!,

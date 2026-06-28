@@ -47,6 +47,8 @@ Aturan:
 - 1 H1 mengandung keyword, max 65 karakter
 - Struktur: ${type.outline}
 - ${type.extras}
+- Judul H2/H3 natural & benefit-driven. JANGAN pakai penomoran ("1.", "1.1.").
+- Bagian FAQ: tiap pertanyaan jadi satu H3 (###), jawaban di paragraf bawahnya.
 - Jika menyebut tahun, gunakan ${year} (bukan tahun lampau)
 
 Output dalam format markdown.`
@@ -65,16 +67,23 @@ ${outline}
 
 ATURAN:
 1. Bahasa Indonesia natural, tidak kaku
-2. Keyword di 100 kata pertama, minimal 3x di body, 1x kesimpulan
+2. Keyword dipakai natural: 1x di paragraf pembuka, 2-3x di seluruh body,
+   1x di kesimpulan. JANGAN keyword stuffing dan jangan bold keyword berulang.
 3. Max 4 kalimat per paragraf
 4. Analogi sederhana untuk hal teknis
-5. Sisipkan [AFFILIATE_1] [AFFILIATE_2] [CTA_BOX] sesuai outline
-6. H2 pakai ##, H3 pakai ###
-7. Bold untuk istilah penting
-8. Jika menyebut tahun, gunakan ${year} sebagai tahun terkini. JANGAN menyebut
-   tahun yang sudah lewat (mis. 2023/2024) seolah-olah masa kini.
+5. Buka dengan 1 paragraf hook ringkas yang merangkum isi (berfungsi sebagai
+   meta/snippet) — tanpa heading "Pendahuluan".
+6. Sisipkan 1-2 tautan eksternal ke sumber tepercaya dalam format markdown
+   [teks](https://...), relevan dan tidak dipaksakan.
+7. Judul section natural & benefit-driven, TANPA penomoran ("1.", "1.1.").
+8. Sebelum kesimpulan, beri bagian "Poin Penting" berisi 3-5 bullet ringkasan.
+9. Bagian FAQ: tiap pertanyaan jadi H3 (###), jawaban singkat di bawahnya.
+10. H2 pakai ##, H3 pakai ###. Bold hanya untuk istilah penting (secukupnya).
+11. Sisipkan [AFFILIATE_1] [AFFILIATE_2] [CTA_BOX] sesuai outline.
+12. Jika menyebut tahun, gunakan ${year} sebagai tahun terkini. JANGAN menyebut
+    tahun yang sudah lewat (mis. 2023/2024) seolah-olah masa kini.
 
-TONE: Informatif, friendly
+TONE: Informatif, friendly, kredibel
 PANJANG: ${type.panjang}
 HINDARI: kata "kami", "artikel ini akan", pembuka klise
 
