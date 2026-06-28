@@ -47,29 +47,22 @@ export async function POST(req: Request) {
           .map((a) => ({ title: a.title as string, url: (a.wp_url ?? a.blogger_url) as string }))
           .filter((l) => l.title && l.url)
 
-        // Step 2: Article. Try Groq big model, then Groq fast model (still
-        // Groq quota), and only then Gemini. Surface the Groq error if all
-        // fail, since Groq is the primary engine.
+        // Step 2: Article. Use the fast Groq model (gpt-oss-20b) — higher
+        // throughput limits and lower token burn than the 120b, so it runs
+        // within the free tier reliably. Gemini is the only fallback.
         current = 1
         send({ type: 'step', index: 1, status: 'loading' })
         const articlePrompt = PROMPTS.generate_article(keyword, outline, type, internalLinks)
         let content: string
         try {
-          content = await groqComplete(articlePrompt, undefined, 8192)
-        } catch (bigErr) {
-          console.warn('Groq (large) failed:', bigErr)
+          content = await groqFast(articlePrompt, 8192)
+        } catch (groqErr) {
+          console.warn('Groq failed, falling back to Gemini:', groqErr)
           try {
-            send({ type: 'notice', message: 'Model utama sibuk — pakai model cepat Groq…' })
-            content = await groqFast(articlePrompt, 8192)
-          } catch (fastErr) {
-            console.warn('Groq (fast) failed:', fastErr)
-            try {
-              send({ type: 'notice', message: 'Groq limit — beralih ke Gemini…' })
-              content = await geminiComplete(articlePrompt)
-            } catch (geminiErr) {
-              console.warn('Gemini also failed:', geminiErr)
-              throw bigErr // report the primary (Groq) cause
-            }
+            send({ type: 'notice', message: 'Groq limit — beralih ke Gemini…' })
+            content = await geminiComplete(articlePrompt)
+          } catch {
+            throw groqErr // report the primary (Groq) cause
           }
         }
         send({ type: 'step', index: 1, status: 'done' })

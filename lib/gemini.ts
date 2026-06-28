@@ -1,10 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { withRetry } from '@/lib/retry'
 
-// gemini-1.5-flash is retired. "gemini-flash-latest" always points at the
-// current GA Flash model, so deprecations don't break the pipeline. Override
-// via GEMINI_MODEL to pin a specific version if you prefer.
-const MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest'
+// gemini-2.5-flash has a much larger free tier than the newest 3.5-flash
+// (gemini-flash-latest), so it runs reliably as the fallback. Override via
+// GEMINI_MODEL if you prefer another version.
+const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
 
 // Multiple keys can be set comma-separated to rotate and multiply free quota.
 function getKeys(): string[] {
@@ -60,14 +60,14 @@ function friendlyError(err: unknown): Error {
     const m = raw.match(/retry in ([\d.]+)s/i) ?? raw.match(/"retryDelay":\s*"(\d+)s"/i)
     const wait = m ? ` Coba lagi dalam ~${Math.ceil(parseFloat(m[1]))} detik.` : ''
     return new Error(
-      `Kuota Gemini tercapai (rate limit free tier).${wait} Tunggu sebentar lalu coba lagi, ganti GEMINI_MODEL (mis. gemini-2.5-flash), atau aktifkan billing di Google AI Studio.`
+      `Kuota Gemini tercapai (rate limit free tier).${wait} Tunggu sebentar lalu coba lagi, ganti GEMINI_MODEL (mis. gemini-2.0-flash), atau aktifkan billing di Google AI Studio.`
     )
   }
   if (/api[_ ]?key|api_key_invalid|invalid.*key|permission denied/i.test(raw)) {
     return new Error('GEMINI_API_KEY tidak valid atau tidak punya akses. Periksa kembali key di environment.')
   }
   if (/not found|is not supported|unsupported|no longer available/i.test(raw) && /model/i.test(raw)) {
-    return new Error(`Model Gemini "${MODEL}" tidak tersedia. Set GEMINI_MODEL ke model lain (mis. gemini-2.5-flash).`)
+    return new Error(`Model Gemini "${MODEL}" tidak tersedia. Set GEMINI_MODEL ke model lain (mis. gemini-2.0-flash).`)
   }
   return new Error(`Gemini error: ${raw.split('\n')[0].slice(0, 200)}`)
 }
