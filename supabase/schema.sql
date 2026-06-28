@@ -62,6 +62,18 @@ create table if not exists cron_logs (
   articles_data jsonb
 );
 
+-- App settings (key/value) — e.g. auto-pilot on/off switch
+create table if not exists app_settings (
+  key text primary key,
+  value jsonb,
+  updated_at timestamptz default now()
+);
+
+-- Seed the auto-pilot toggle (default: enabled)
+insert into app_settings (key, value)
+values ('autopilot_enabled', 'true'::jsonb)
+on conflict (key) do nothing;
+
 -- Indexes untuk performa
 create index if not exists idx_articles_status on articles(status);
 create index if not exists idx_articles_created_at on articles(created_at desc);
@@ -73,3 +85,4 @@ alter table keywords disable row level security;
 alter table articles disable row level security;
 alter table analytics disable row level security;
 alter table cron_logs disable row level security;
+alter table app_settings disable row level security;

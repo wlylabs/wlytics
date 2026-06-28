@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload, Play, CheckCircle2, AlertTriangle, Clock } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload, Play, Power, CheckCircle2, AlertTriangle, Clock, PauseCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
@@ -70,6 +70,7 @@ export default function AnalyticsPage() {
   const [cronStatus, setCronStatus] = useState<CronStatusData | null>(null)
   const [loading, setLoading] = useState(true)
   const [running, setRunning] = useState(false)
+  const [toggling, setToggling] = useState(false)
 
   async function loadData() {
     try {
@@ -137,6 +138,28 @@ export default function AnalyticsPage() {
       toast.error(err instanceof Error ? err.message : 'Auto-pilot gagal')
     } finally {
       setRunning(false)
+    }
+  }
+
+  async function handleToggle(enabled: boolean) {
+    setToggling(true)
+    try {
+      const res = await fetch('/api/cron/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled })
+      })
+      const json = await res.json()
+      if (res.ok && json.success) {
+        toast.success(enabled ? 'Auto-pilot diaktifkan' : 'Auto-pilot dihentikan')
+        await loadData()
+      } else {
+        toast.error(json.error ?? 'Gagal mengubah status auto-pilot')
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal mengubah status auto-pilot')
+    } finally {
+      setToggling(false)
     }
   }
 
@@ -284,20 +307,32 @@ export default function AnalyticsPage() {
         {/* Auto-pilot status */}
         {cronStatus &&
           (() => {
+            const enabled = cronStatus.enabled
             const ready = cronStatus.configured && cronStatus.bloggerReady
             const missing: string[] = []
             if (!cronStatus.configured) missing.push('CRON_SECRET belum diset di server')
             if (!cronStatus.bloggerReady) missing.push('Blogger belum terhubung')
+            const iconClass = !enabled
+              ? 'bg-gray-100 text-gray-500'
+              : ready
+                ? 'bg-green-50 text-green-600'
+                : 'bg-amber-50 text-amber-600'
+            const badgeClass = !enabled
+              ? 'bg-gray-200 text-gray-600'
+              : ready
+                ? 'bg-green-100 text-green-700'
+                : 'bg-amber-100 text-amber-700'
+            const badgeLabel = !enabled ? 'Dihentikan' : ready ? 'Aktif' : 'Belum siap'
             return (
               <Card>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex items-start gap-3">
                     <div
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
-                        ready ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'
-                      }`}
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${iconClass}`}
                     >
-                      {ready ? (
+                      {!enabled ? (
+                        <PauseCircle className="h-6 w-6" />
+                      ) : ready ? (
                         <CheckCircle2 className="h-6 w-6" />
                       ) : (
                         <AlertTriangle className="h-6 w-6" />
@@ -307,11 +342,9 @@ export default function AnalyticsPage() {
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-semibold text-gray-900">Auto-pilot</h3>
                         <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                            ready ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                          }`}
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeClass}`}
                         >
-                          {ready ? 'Aktif' : 'Belum siap'}
+                          {badgeLabel}
                         </span>
                       </div>
                       <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
@@ -329,17 +362,46 @@ export default function AnalyticsPage() {
                   </div>
 
                   <div className="sm:text-right">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      loading={running}
-                      disabled={running}
-                      onClick={handleRunNow}
-                    >
-                      <Play className="h-4 w-4" />
-                      Jalankan Sekarang
-                    </Button>
-                    <p className="mt-1 text-xs text-gray-400">~30–60 detik per artikel</p>
+                    <div className="flex flex-wrap gap-2 sm:justify-end">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        loading={running}
+                        disabled={running || toggling || !enabled}
+                        onClick={handleRunNow}
+                      >
+                        <Play className="h-4 w-4" />
+                        Jalankan Sekarang
+                      </Button>
+                      {enabled ? (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          loading={toggling}
+                          disabled={toggling || running}
+                          onClick={() => handleToggle(false)}
+                        >
+                          <Power className="h-4 w-4" />
+                          Stop Auto-pilot
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          loading={toggling}
+                          disabled={toggling}
+                          onClick={() => handleToggle(true)}
+                        >
+                          <Power className="h-4 w-4" />
+                          Aktifkan Auto-pilot
+                        </Button>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {enabled
+                        ? '~30–60 detik per artikel'
+                        : 'Auto-pilot dihentikan — jadwal harian tidak berjalan'}
+                    </p>
                   </div>
                 </div>
 

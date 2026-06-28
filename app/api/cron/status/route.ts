@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { isAutopilotEnabled } from '@/lib/settings'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,11 +32,14 @@ export async function GET() {
       0
     )
 
+    const enabled = await isAutopilotEnabled()
+
     return NextResponse.json({
       success: true,
       data: {
         configured,
         bloggerReady,
+        enabled,
         schedule: SCHEDULE,
         scheduleLabel: 'Setiap hari 08:00 WIB',
         lastRun: lastRows?.[0] ?? null,
