@@ -94,7 +94,7 @@ export default function DashboardPage() {
         {/* Hero */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-6 text-white sm:p-8">
           <div className="relative z-10 max-w-xl">
-            <p className="text-sm text-violet-100">{greeting} 👋</p>
+            <p className="text-sm text-violet-100">{greeting}, wly</p>
             <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
               Kelola content farm kamu
             </h2>
