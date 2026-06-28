@@ -397,22 +397,11 @@ function GenerateContent() {
                 <ol>
                   {STEP_LABELS.map((label, i) => {
                     const status = steps[i]
-                    const isLast = i === STEP_LABELS.length - 1
                     return (
-                      <li key={label} className="flex gap-3 pb-5 last:pb-0">
-                        {/* Icon column with a centered connector line */}
-                        <div className="relative flex w-5 justify-center">
-                          <span className="relative z-10 bg-white">
-                            <StepIcon status={status} />
-                          </span>
-                          {!isLast && (
-                            <span
-                              className={`absolute -bottom-5 left-1/2 top-6 w-px -translate-x-1/2 ${
-                                status === 'done' ? 'bg-green-300' : 'bg-gray-200'
-                              }`}
-                            />
-                          )}
-                        </div>
+                      <li key={label} className="flex gap-3 pb-4 last:pb-0">
+                        <span className="mt-0.5 shrink-0">
+                          <StepIcon status={status} />
+                        </span>
                         <div className="pt-0.5">
                           <p
                             className={`text-sm font-medium ${
