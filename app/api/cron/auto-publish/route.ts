@@ -49,16 +49,16 @@ export async function GET(req: Request) {
 
         const type = getArticleType(suggestArticleType(kw.keyword, kw.intent))
 
-        // b. outline
+        // b. outline (fast model to stay within the 60s function limit)
         console.log('[cron]   generating outline…')
-        const outline = await groqComplete(PROMPTS.generate_outline(kw.keyword, type))
+        const outline = await groqFast(PROMPTS.generate_outline(kw.keyword, type))
 
-        // c. article (Groq primary, Gemini fallback)
+        // c. article — fast Groq model (gpt-oss-20b) for speed; Gemini fallback
         console.log('[cron]   generating article…')
         const articlePrompt = PROMPTS.generate_article(kw.keyword, outline, type)
         let content: string
         try {
-          content = await groqComplete(articlePrompt, undefined, 8192)
+          content = await groqFast(articlePrompt, 8192)
         } catch (err) {
           console.warn('[cron]   Groq failed, falling back to Gemini:', err)
           content = await geminiComplete(articlePrompt)

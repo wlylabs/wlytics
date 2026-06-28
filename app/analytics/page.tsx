@@ -97,7 +97,26 @@ export default function AnalyticsPage() {
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET ?? ''}`
         }
       })
-      const json = await res.json()
+
+      // A gateway/timeout returns an HTML page, not JSON — handle that cleanly.
+      if (res.status === 502 || res.status === 503 || res.status === 504) {
+        toast.error(
+          'Proses memakan waktu terlalu lama (limit 60 detik di Vercel). Artikel mungkin tetap terbit — cek Riwayat sebentar lagi.'
+        )
+        await loadData()
+        return
+      }
+
+      const raw = await res.text()
+      let json: { success?: boolean; error?: string }
+      try {
+        json = JSON.parse(raw)
+      } catch {
+        toast.error(`Respons tidak valid (HTTP ${res.status}). Coba lagi atau cek Riwayat.`)
+        await loadData()
+        return
+      }
+
       if (res.ok && json.success) {
         toast.success('✅ Auto-pilot berhasil! Artikel baru sudah dipublish ke Blogger')
         await loadData()
