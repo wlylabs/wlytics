@@ -13,6 +13,16 @@ export interface CronLog {
   articles_data?: { title: string; blogger_url: string | null }[] | null
 }
 
+export interface CronStatusData {
+  configured: boolean
+  bloggerReady: boolean
+  schedule: string
+  scheduleLabel: string
+  lastRun: Pick<CronLog, 'run_at' | 'status' | 'generated' | 'published' | 'error_message'> | null
+  totalRuns: number
+  totalPublished: number
+}
+
 export interface Keyword {
   id: string
   keyword: string

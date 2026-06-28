@@ -114,9 +114,9 @@ export default function KeywordsPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
             { label: 'Total', value: stats.total },
-            { label: 'Unused', value: stats.unused },
-            { label: 'In Progress', value: stats.in_progress },
-            { label: 'Done', value: stats.done }
+            { label: 'Belum dipakai', value: stats.unused },
+            { label: 'Sedang diproses', value: stats.in_progress },
+            { label: 'Sudah dipakai', value: stats.done }
           ].map((s) => (
             <Card key={s.label}>
               <p className="text-sm text-gray-500">{s.label}</p>
@@ -172,9 +172,14 @@ export default function KeywordsPage() {
                             variant="secondary"
                             size="sm"
                             disabled={kw.status !== 'unused'}
+                            title={
+                              kw.status !== 'unused'
+                                ? 'Keyword ini sudah dipakai / sedang diproses'
+                                : 'Buat artikel dari keyword ini'
+                            }
                             onClick={() => handleGenerate(kw)}
                           >
-                            Generate Artikel
+                            {kw.status === 'unused' ? 'Generate Artikel' : 'Sudah dipakai'}
                           </Button>
                         </td>
                       </tr>
@@ -200,7 +205,7 @@ export default function KeywordsPage() {
                         disabled={kw.status !== 'unused'}
                         onClick={() => handleGenerate(kw)}
                       >
-                        Generate Artikel
+                        {kw.status === 'unused' ? 'Generate Artikel' : 'Sudah dipakai'}
                       </Button>
                     </div>
                   </li>

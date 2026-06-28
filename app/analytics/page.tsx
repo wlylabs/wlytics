@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload, Play } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload, Play, CheckCircle2, AlertTriangle, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
-import type { Article, Keyword, CronLog, CronStatus } from '@/types'
+import type { Article, Keyword, CronLog, CronStatus, CronStatusData } from '@/types'
 
 const CRON_BADGE: Record<CronStatus, string> = {
   success: 'bg-green-100 text-green-700',
@@ -61,22 +61,26 @@ export default function AnalyticsPage() {
   const [articles, setArticles] = useState<Article[]>([])
   const [keywords, setKeywords] = useState<Keyword[]>([])
   const [cronLogs, setCronLogs] = useState<CronLog[]>([])
+  const [cronStatus, setCronStatus] = useState<CronStatusData | null>(null)
   const [loading, setLoading] = useState(true)
   const [running, setRunning] = useState(false)
 
   async function loadData() {
     try {
-      const [articlesRes, keywordsRes, logsRes] = await Promise.all([
+      const [articlesRes, keywordsRes, logsRes, statusRes] = await Promise.all([
         fetch('/api/articles'),
         fetch('/api/keywords'),
-        fetch('/api/cron/logs')
+        fetch('/api/cron/logs'),
+        fetch('/api/cron/status')
       ])
       const articlesJson = await articlesRes.json()
       const keywordsJson = await keywordsRes.json()
       const logsJson = await logsRes.json()
+      const statusJson = await statusRes.json()
       if (articlesJson.success) setArticles(articlesJson.data ?? [])
       if (keywordsJson.success) setKeywords(keywordsJson.data ?? [])
       if (logsJson.success) setCronLogs(logsJson.data ?? [])
+      if (statusJson.success) setCronStatus(statusJson.data ?? null)
     } catch (err) {
       console.error('Failed to load analytics', err)
     } finally {
@@ -268,27 +272,99 @@ export default function AnalyticsPage() {
           </Card>
         </div>
 
-        {/* Auto-pilot history */}
-        <Card>
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Riwayat Auto-pilot</h3>
-            <div className="sm:text-right">
-              <Button
-                variant="primary"
-                size="sm"
-                loading={running}
-                disabled={running}
-                onClick={handleRunNow}
-              >
-                <Play className="h-4 w-4" />
-                Jalankan Sekarang
-              </Button>
-              <p className="mt-1 text-xs text-gray-400">
-                Cron otomatis jalan setiap hari 08.00 WIB
-              </p>
-            </div>
-          </div>
+        {/* Auto-pilot status */}
+        {cronStatus &&
+          (() => {
+            const ready = cronStatus.configured && cronStatus.bloggerReady
+            const missing: string[] = []
+            if (!cronStatus.configured) missing.push('CRON_SECRET belum diset di server')
+            if (!cronStatus.bloggerReady) missing.push('Blogger belum terhubung')
+            return (
+              <Card>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                        ready ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'
+                      }`}
+                    >
+                      {ready ? (
+                        <CheckCircle2 className="h-6 w-6" />
+                      ) : (
+                        <AlertTriangle className="h-6 w-6" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-gray-900">Auto-pilot</h3>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                            ready ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          }`}
+                        >
+                          {ready ? 'Aktif' : 'Belum siap'}
+                        </span>
+                      </div>
+                      <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
+                        <Clock className="h-4 w-4" />
+                        {cronStatus.scheduleLabel}
+                      </p>
+                      {!ready && (
+                        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-amber-700">
+                          {missing.map((m) => (
+                            <li key={m}>{m}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
 
+                  <div className="sm:text-right">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      loading={running}
+                      disabled={running}
+                      onClick={handleRunNow}
+                    >
+                      <Play className="h-4 w-4" />
+                      Jalankan Sekarang
+                    </Button>
+                    <p className="mt-1 text-xs text-gray-400">~30–60 detik per artikel</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-3 border-t border-gray-100 pt-4 text-center">
+                  <div>
+                    <p className="text-xs text-gray-400">Terakhir jalan</p>
+                    <p className="mt-0.5 text-sm font-medium text-gray-800">
+                      {cronStatus.lastRun ? formatDateTime(cronStatus.lastRun.run_at) : 'Belum pernah'}
+                    </p>
+                    {cronStatus.lastRun && (
+                      <div className="mt-1 flex justify-center">
+                        <CronStatusBadge status={cronStatus.lastRun.status} />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Total run</p>
+                    <p className="mt-0.5 text-lg font-semibold text-gray-900">
+                      {cronStatus.totalRuns}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Total terbit</p>
+                    <p className="mt-0.5 text-lg font-semibold text-gray-900">
+                      {cronStatus.totalPublished}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )
+          })()}
+
+        {/* Auto-pilot history */}
+        <Card title="Riwayat Auto-pilot">
           {cronLogs.length === 0 ? (
             <p className="py-8 text-center text-sm text-gray-500">
               Belum ada riwayat auto-pilot.
