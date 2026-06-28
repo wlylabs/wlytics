@@ -9,8 +9,8 @@ import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
-import { parseJson } from '@/lib/http'
-import type { Article, ArticleStatus } from '@/types'
+import PublishMenu from '@/components/publish/PublishMenu'
+import type { Article } from '@/types'
 
 type Filter = 'all' | 'draft' | 'generated' | 'published'
 
@@ -20,8 +20,6 @@ const FILTERS: { label: string; value: Filter }[] = [
   { label: 'Generated', value: 'generated' },
   { label: 'Published', value: 'published' }
 ]
-
-const PUBLISHABLE: ArticleStatus[] = ['generated', 'reviewed']
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('id-ID', {
@@ -36,7 +34,6 @@ export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
-  const [publishingId, setPublishingId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -60,33 +57,8 @@ export default function ArticlesPage() {
     [articles, filter]
   )
 
-  async function handlePublish(article: Article) {
-    setPublishingId(article.id)
-    try {
-      const res = await fetch('/api/publish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ article_id: article.id })
-      })
-      const json = await parseJson<{ success: boolean; wp_url?: string; error?: string }>(res)
-      if (json.success) {
-        toast.success('Artikel berhasil dipublish!')
-        setArticles((prev) =>
-          prev.map((a) =>
-            a.id === article.id
-              ? { ...a, status: 'published', wp_url: json.wp_url }
-              : a
-          )
-        )
-      } else {
-        toast.error(json.error ?? 'Gagal publish artikel')
-      }
-    } catch (err) {
-      console.error(err)
-      toast.error(err instanceof Error ? err.message : 'Gagal publish artikel')
-    } finally {
-      setPublishingId(null)
-    }
+  function patchArticle(id: string, patch: Partial<Article>) {
+    setArticles((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)))
   }
 
   return (
@@ -135,43 +107,33 @@ export default function ArticlesPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
-            {filtered.map((article) => {
-              const canPublish = PUBLISHABLE.includes(article.status)
-              return (
-                <Card key={article.id} className="flex flex-col">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="line-clamp-2 font-semibold text-gray-900">{article.title}</h3>
-                    <Badge status={article.status} />
-                  </div>
-                  <p className="mt-1 text-xs text-gray-400">{article.keyword}</p>
+            {filtered.map((article) => (
+              <Card key={article.id} className="flex flex-col">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="line-clamp-2 font-semibold text-gray-900">{article.title}</h3>
+                  <Badge status={article.status} />
+                </div>
+                <p className="mt-1 text-xs text-gray-400">{article.keyword}</p>
 
-                  <p className="mt-3 text-sm text-gray-500">
-                    {article.word_count} kata · {formatDate(article.created_at)}
-                  </p>
+                <p className="mt-3 text-sm text-gray-500">
+                  {article.word_count} kata · {formatDate(article.created_at)}
+                </p>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => router.push(`/articles/${article.id}`)}
-                    >
-                      Preview
-                    </Button>
-                    {canPublish && (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        loading={publishingId === article.id}
-                        disabled={publishingId === article.id}
-                        onClick={() => handlePublish(article)}
-                      >
-                        Publish
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              )
-            })}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => router.push(`/articles/${article.id}`)}
+                  >
+                    Preview
+                  </Button>
+                  <PublishMenu
+                    article={article}
+                    onUpdated={(patch) => patchArticle(article.id, patch)}
+                  />
+                </div>
+              </Card>
+            ))}
           </div>
         )}
       </div>
