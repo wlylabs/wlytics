@@ -7,16 +7,57 @@ import { withRetry } from '@/lib/retry'
 const DEFAULT_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
 const FAST_MODEL = process.env.GROQ_FAST_MODEL || 'openai/gpt-oss-20b'
 
-let cached: Groq | null = null
+// Multiple keys can be set comma-separated to rotate and multiply free quota.
+function getKeys(): string[] {
+  return (process.env.GROQ_API_KEY ?? '')
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean)
+}
 
-function getClient(): Groq {
-  if (!process.env.GROQ_API_KEY) {
+export function groqKeyCount(): number {
+  return getKeys().length
+}
+
+const clientCache = new Map<string, Groq>()
+function clientFor(key: string): Groq {
+  let c = clientCache.get(key)
+  if (!c) {
+    c = new Groq({ apiKey: key })
+    clientCache.set(key, c)
+  }
+  return c
+}
+
+let rotationIndex = 0
+
+function looksRateLimited(err: unknown): boolean {
+  const status = (err as { status?: number })?.status
+  const msg = (err as Error)?.message?.toLowerCase() ?? ''
+  return status === 429 || /rate limit|quota|too many requests|resource_exhausted/.test(msg)
+}
+
+// Run a call across the configured keys, rotating and skipping any that are
+// rate-limited. Non-rate-limit errors (auth/model) are thrown immediately
+// since another key won't help.
+async function withKeyRotation<T>(fn: (client: Groq) => Promise<T>): Promise<T> {
+  const keys = getKeys()
+  if (keys.length === 0) {
     throw new Error('GROQ_API_KEY belum diset di environment (.env.local)')
   }
-  if (!cached) {
-    cached = new Groq({ apiKey: process.env.GROQ_API_KEY })
+  let lastErr: unknown
+  for (let i = 0; i < keys.length; i++) {
+    const idx = (rotationIndex + i) % keys.length
+    try {
+      const result = await fn(clientFor(keys[idx]))
+      rotationIndex = (idx + 1) % keys.length
+      return result
+    } catch (err) {
+      lastErr = err
+      if (!looksRateLimited(err)) throw err
+    }
   }
-  return cached
+  throw lastErr
 }
 
 // Turn verbose SDK errors into short, actionable messages for the UI.
@@ -41,14 +82,15 @@ export async function groqComplete(
   maxTokens = 4096
 ): Promise<string> {
   try {
-    const groq = getClient()
     const res = await withRetry(() =>
-      groq.chat.completions.create({
-        model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: maxTokens
-      })
+      withKeyRotation((groq) =>
+        groq.chat.completions.create({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          max_tokens: maxTokens
+        })
+      )
     )
     return res.choices[0]?.message?.content ?? ''
   } catch (err) {
@@ -60,18 +102,52 @@ export async function groqFast(prompt: string, maxTokens = 4096): Promise<string
   return groqComplete(prompt, FAST_MODEL, maxTokens)
 }
 
-export type KeyStatus = { configured: boolean; ok: boolean; message: string }
+export type KeyStatus = {
+  configured: boolean
+  available: boolean
+  message: string
+  remaining?: string | null
+}
 
-// Verify the Groq key via models.list() — an auth check that does NOT spend
-// generation quota.
+// Probe with a 1-token completion and read Groq's rate-limit headers to report
+// whether the key is currently usable (limit tersedia) or rate-limited.
 export async function checkGroqKey(): Promise<KeyStatus> {
-  if (!process.env.GROQ_API_KEY) {
-    return { configured: false, ok: false, message: 'GROQ_API_KEY belum diset' }
+  const keys = getKeys()
+  if (keys.length === 0) {
+    return { configured: false, available: false, message: 'Key belum diset' }
   }
+  const keyNote = keys.length > 1 ? ` · ${keys.length} key` : ''
   try {
-    await getClient().models.list()
-    return { configured: true, ok: true, message: 'API key valid' }
+    const { response } = await withKeyRotation((groq) =>
+      groq.chat.completions
+        .create({
+          model: FAST_MODEL,
+          messages: [{ role: 'user', content: 'ping' }],
+          max_tokens: 1
+        })
+        .withResponse()
+    )
+
+    const remaining = response.headers.get('x-ratelimit-remaining-requests')
+    return {
+      configured: true,
+      available: true,
+      remaining,
+      message: `${remaining ? `Tersedia · ${remaining} request tersisa` : 'Tersedia'}${keyNote}`
+    }
   } catch (err) {
-    return { configured: true, ok: false, message: friendlyError(err, DEFAULT_MODEL).message }
+    const status = (err as { status?: number })?.status
+    const raw = err instanceof Error ? err.message : ''
+    if (status === 429 || /rate limit|quota|too many requests/i.test(raw)) {
+      const m = raw.match(/try again in ([\d.]+)s/i) ?? raw.match(/([\d.]+)s/)
+      return {
+        configured: true,
+        available: false,
+        message: `Limit tercapai${
+          keys.length > 1 ? ` di semua ${keys.length} key` : ''
+        }${m ? `, coba lagi ~${Math.ceil(parseFloat(m[1]))} detik` : ''}`
+      }
+    }
+    return { configured: true, available: false, message: friendlyError(err, FAST_MODEL).message }
   }
 }

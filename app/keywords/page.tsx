@@ -113,14 +113,17 @@ export default function KeywordsPage() {
         {/* Mini stats */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { label: 'Total', value: stats.total },
-            { label: 'Belum dipakai', value: stats.unused },
-            { label: 'Sedang diproses', value: stats.in_progress },
-            { label: 'Sudah dipakai', value: stats.done }
+            { label: 'Total', value: stats.total, dot: 'bg-gray-300' },
+            { label: 'Belum dipakai', value: stats.unused, dot: 'bg-gray-400' },
+            { label: 'Sedang diproses', value: stats.in_progress, dot: 'bg-amber-400' },
+            { label: 'Sudah dipakai', value: stats.done, dot: 'bg-green-500' }
           ].map((s) => (
             <Card key={s.label}>
-              <p className="text-sm text-gray-500">{s.label}</p>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">{s.value}</p>
+              <div className="flex items-center gap-2">
+                <span className={`h-2 w-2 rounded-full ${s.dot}`} />
+                <p className="text-sm text-gray-500">{s.label}</p>
+              </div>
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-gray-900">{s.value}</p>
             </Card>
           ))}
         </div>

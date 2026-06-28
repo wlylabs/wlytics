@@ -231,7 +231,7 @@ export default function PublishPage() {
           {/* WordPress */}
           <Card>
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                 <Globe className="h-6 w-6" />
               </div>
               <div className="min-w-0">
@@ -246,7 +246,7 @@ export default function PublishPage() {
           {/* Blogger */}
           <Card>
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
                 <Rss className="h-6 w-6" />
               </div>
               <div className="min-w-0 flex-1">

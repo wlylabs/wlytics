@@ -40,7 +40,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-zinc-50 text-gray-900`}
       >
         <Sidebar />
-        <div className="flex min-h-screen flex-col pt-14 lg:ml-60 lg:pt-0">
+        <div className="flex min-h-screen flex-col pt-14 lg:ml-64 lg:pt-0">
           <main className="flex-1">{children}</main>
         </div>
         <Toaster position="top-right" />

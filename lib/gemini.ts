@@ -6,16 +6,50 @@ import { withRetry } from '@/lib/retry'
 // via GEMINI_MODEL to pin a specific version if you prefer.
 const MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest'
 
-let cached: GoogleGenerativeAI | null = null
+// Multiple keys can be set comma-separated to rotate and multiply free quota.
+function getKeys(): string[] {
+  return (process.env.GEMINI_API_KEY ?? '')
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean)
+}
 
-function getClient(): GoogleGenerativeAI {
-  if (!process.env.GEMINI_API_KEY) {
+const clientCache = new Map<string, GoogleGenerativeAI>()
+function clientFor(key: string): GoogleGenerativeAI {
+  let c = clientCache.get(key)
+  if (!c) {
+    c = new GoogleGenerativeAI(key)
+    clientCache.set(key, c)
+  }
+  return c
+}
+
+let rotationIndex = 0
+
+function looksRateLimited(err: unknown): boolean {
+  const status = (err as { status?: number })?.status
+  const msg = (err as Error)?.message?.toLowerCase() ?? ''
+  return status === 429 || /quota|resource_exhausted|rate limit|too many requests/.test(msg)
+}
+
+async function withKeyRotation<T>(fn: (client: GoogleGenerativeAI) => Promise<T>): Promise<T> {
+  const keys = getKeys()
+  if (keys.length === 0) {
     throw new Error('GEMINI_API_KEY belum diset di environment (.env.local)')
   }
-  if (!cached) {
-    cached = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+  let lastErr: unknown
+  for (let i = 0; i < keys.length; i++) {
+    const idx = (rotationIndex + i) % keys.length
+    try {
+      const result = await fn(clientFor(keys[idx]))
+      rotationIndex = (idx + 1) % keys.length
+      return result
+    } catch (err) {
+      lastErr = err
+      if (!looksRateLimited(err)) throw err
+    }
   }
-  return cached
+  throw lastErr
 }
 
 // Turn verbose SDK errors into short, actionable messages for the UI.
@@ -40,36 +74,48 @@ function friendlyError(err: unknown): Error {
 
 export async function geminiComplete(prompt: string): Promise<string> {
   try {
-    const model = getClient().getGenerativeModel({ model: MODEL })
-    const result = await withRetry(() => model.generateContent(prompt))
-    return result.response.text()
+    return await withRetry(() =>
+      withKeyRotation(async (client) => {
+        const model = client.getGenerativeModel({ model: MODEL })
+        const result = await model.generateContent(prompt)
+        return result.response.text()
+      })
+    )
   } catch (err) {
     throw friendlyError(err)
   }
 }
 
-export type KeyStatus = { configured: boolean; ok: boolean; message: string }
+export type KeyStatus = {
+  configured: boolean
+  available: boolean
+  message: string
+  remaining?: string | null
+}
 
-// Verify the Gemini key by listing models — an auth check that does NOT spend
-// the (small) generation quota.
+// Gemini doesn't expose remaining quota cheaply (you only learn the limit by
+// hitting a 429 on a real call, which would burn the small free quota). So we
+// only verify validity here and label it as the fallback engine.
 export async function checkGeminiKey(): Promise<KeyStatus> {
-  if (!process.env.GEMINI_API_KEY) {
-    return { configured: false, ok: false, message: 'GEMINI_API_KEY belum diset' }
+  const keys = getKeys()
+  if (keys.length === 0) {
+    return { configured: false, available: false, message: 'Key belum diset' }
   }
+  const keyNote = keys.length > 1 ? ` · ${keys.length} key` : ''
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${keys[0]}`,
       { signal: AbortSignal.timeout(8000) }
     )
-    if (res.ok) return { configured: true, ok: true, message: 'API key valid' }
+    if (res.ok) return { configured: true, available: true, message: `Valid (fallback)${keyNote}` }
     if (res.status === 400 || res.status === 403) {
-      return { configured: true, ok: false, message: 'API key tidak valid' }
+      return { configured: true, available: false, message: 'Key tidak valid' }
     }
-    return { configured: true, ok: false, message: `Gemini error (HTTP ${res.status})` }
+    return { configured: true, available: false, message: `Gemini error (HTTP ${res.status})` }
   } catch (err) {
     return {
       configured: true,
-      ok: false,
+      available: false,
       message: err instanceof Error ? err.message : 'Gagal memeriksa Gemini'
     }
   }

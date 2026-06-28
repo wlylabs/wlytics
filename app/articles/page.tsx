@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { FileText } from 'lucide-react'
+import { FileText, Globe, Rss, Eye } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
@@ -15,10 +15,10 @@ import type { Article } from '@/types'
 type Filter = 'all' | 'draft' | 'generated' | 'published'
 
 const FILTERS: { label: string; value: Filter }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Draft', value: 'draft' },
-  { label: 'Generated', value: 'generated' },
-  { label: 'Published', value: 'published' }
+  { label: 'Semua', value: 'all' },
+  { label: 'Draf', value: 'draft' },
+  { label: 'Siap publish', value: 'generated' },
+  { label: 'Terbit', value: 'published' }
 ]
 
 function formatDate(value: string) {
@@ -57,6 +57,16 @@ export default function ArticlesPage() {
     [articles, filter]
   )
 
+  const counts = useMemo(
+    () => ({
+      all: articles.length,
+      draft: articles.filter((a) => a.status === 'draft').length,
+      generated: articles.filter((a) => a.status === 'generated').length,
+      published: articles.filter((a) => a.status === 'published').length
+    }),
+    [articles]
+  )
+
   function patchArticle(id: string, patch: Partial<Article>) {
     setArticles((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)))
   }
@@ -71,25 +81,35 @@ export default function ArticlesPage() {
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
         {/* Filter bar */}
         <div className="flex flex-wrap gap-2">
-          {FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 active:scale-95 ${
-                filter === f.value
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+          {FILTERS.map((f) => {
+            const active = filter === f.value
+            return (
+              <button
+                key={f.value}
+                onClick={() => setFilter(f.value)}
+                className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-150 active:scale-95 ${
+                  active
+                    ? 'bg-violet-600 text-white shadow-sm'
+                    : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                {f.label}
+                <span
+                  className={`rounded-full px-1.5 text-xs ${
+                    active ? 'bg-white/20' : 'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  {counts[f.value]}
+                </span>
+              </button>
+            )
+          })}
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-40 animate-pulse rounded-xl bg-gray-100" />
+              <div key={i} className="h-40 animate-pulse rounded-2xl bg-gray-100" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -110,21 +130,43 @@ export default function ArticlesPage() {
             {filtered.map((article) => (
               <Card key={article.id} className="flex flex-col">
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="line-clamp-2 font-semibold text-gray-900">{article.title}</h3>
                   <Badge status={article.status} />
+                  <div className="flex items-center gap-1.5">
+                    {article.wp_url && (
+                      <span
+                        title="Terbit di WordPress"
+                        className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600"
+                      >
+                        <Globe className="h-3.5 w-3.5" />
+                      </span>
+                    )}
+                    {article.blogger_url && (
+                      <span
+                        title="Terbit di Blogger"
+                        className="flex h-6 w-6 items-center justify-center rounded-md bg-orange-50 text-orange-600"
+                      >
+                        <Rss className="h-3.5 w-3.5" />
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-gray-400">{article.keyword}</p>
+
+                <h3 className="mt-3 line-clamp-2 font-semibold text-gray-900">{article.title}</h3>
+                <span className="mt-2 inline-flex w-fit items-center rounded-md bg-gray-50 px-2 py-0.5 text-xs text-gray-500">
+                  {article.keyword}
+                </span>
 
                 <p className="mt-3 text-sm text-gray-500">
                   {article.word_count} kata · {formatDate(article.created_at)}
                 </p>
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => router.push(`/articles/${article.id}`)}
                   >
+                    <Eye className="h-4 w-4" />
                     Preview
                   </Button>
                   <PublishMenu

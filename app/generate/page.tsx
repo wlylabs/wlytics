@@ -52,6 +52,19 @@ function StepIcon({ status }: { status: StepStatus }) {
   }
 }
 
+function statusText(status: StepStatus): string {
+  switch (status) {
+    case 'loading':
+      return 'Sedang diproses…'
+    case 'done':
+      return 'Selesai'
+    case 'error':
+      return 'Gagal'
+    default:
+      return 'Menunggu'
+  }
+}
+
 function GenerateContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -67,7 +80,7 @@ function GenerateContent() {
   const [result, setResult] = useState<Article | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  type KeyStatus = { configured: boolean; ok: boolean; message: string }
+  type KeyStatus = { configured: boolean; available: boolean; message: string }
   const [apiStatus, setApiStatus] = useState<{ groq: KeyStatus; gemini: KeyStatus } | null>(null)
 
   useEffect(() => {
@@ -253,22 +266,23 @@ function GenerateContent() {
           </Card>
         ) : (
           <>
-            {/* API key status */}
+            {/* API limit status */}
             {apiStatus && (
               <Card>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6">
-                  <span className="text-sm font-medium text-gray-700">Status API</span>
+                  <span className="text-sm font-medium text-gray-700">Status Limit API</span>
                   {(['groq', 'gemini'] as const).map((key) => {
                     const s = apiStatus[key]
-                    const color = s.ok
+                    const color = s.available
                       ? 'bg-green-500'
                       : s.configured
                         ? 'bg-red-500'
                         : 'bg-gray-300'
+                    const label = key === 'groq' ? 'Groq (utama)' : 'Gemini (cadangan)'
                     return (
                       <span key={key} className="flex items-center gap-2 text-sm">
                         <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-                        <span className="font-medium capitalize text-gray-800">{key}</span>
+                        <span className="font-medium text-gray-800">{label}</span>
                         <span className="text-gray-400">— {s.message}</span>
                       </span>
                     )
@@ -380,20 +394,42 @@ function GenerateContent() {
             {/* Pipeline progress */}
             {generating && (
               <Card title="Progress Pipeline">
-                <ul className="space-y-3">
-                  {STEP_LABELS.map((label, i) => (
-                    <li key={label} className="flex items-center gap-3">
-                      <StepIcon status={steps[i]} />
-                      <span
-                        className={`text-sm ${
-                          steps[i] === 'pending' ? 'text-gray-400' : 'text-gray-800'
-                        }`}
-                      >
-                        {label}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <ol className="relative">
+                  {STEP_LABELS.map((label, i) => {
+                    const status = steps[i]
+                    const isLast = i === STEP_LABELS.length - 1
+                    return (
+                      <li key={label} className="relative flex gap-3 pb-5 last:pb-0">
+                        {!isLast && (
+                          <span
+                            className={`absolute left-[9px] top-6 h-[calc(100%-1rem)] w-px ${
+                              status === 'done' ? 'bg-green-300' : 'bg-gray-200'
+                            }`}
+                          />
+                        )}
+                        <span className="relative z-10 mt-0.5">
+                          <StepIcon status={status} />
+                        </span>
+                        <div>
+                          <p
+                            className={`text-sm font-medium ${
+                              status === 'pending' ? 'text-gray-400' : 'text-gray-800'
+                            }`}
+                          >
+                            {label}
+                          </p>
+                          <p
+                            className={`text-xs ${
+                              status === 'error' ? 'text-red-500' : 'text-gray-400'
+                            }`}
+                          >
+                            {statusText(status)}
+                          </p>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ol>
               </Card>
             )}
 
