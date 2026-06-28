@@ -18,7 +18,7 @@ export const PROMPTS = {
     const { year, nextYear } = today()
     return `
 Kamu adalah SEO specialist teknologi Indonesia.
-Berikan 20 keyword long-tail bahasa Indonesia niche teknologi.
+Berikan 10 keyword long-tail bahasa Indonesia niche teknologi.
 Kriteria:
 - Search intent: informational & commercial
 - Kesulitan: rendah-menengah untuk blog baru

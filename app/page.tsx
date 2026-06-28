@@ -129,7 +129,7 @@ export default function DashboardPage() {
               <Search className="h-5 w-5 text-indigo-600" />
               <h3 className="text-lg font-semibold">Research Keywords</h3>
             </div>
-            <p className="mt-1 text-sm text-gray-500">Generate 20 keyword teknologi baru</p>
+            <p className="mt-1 text-sm text-gray-500">Generate 10 keyword teknologi baru</p>
             <Link href="/keywords" className="mt-4 inline-block">
               <Button variant="primary">Mulai Research</Button>
             </Link>

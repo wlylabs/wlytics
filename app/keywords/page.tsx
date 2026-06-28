@@ -133,7 +133,7 @@ export default function KeywordsPage() {
             <EmptyState
               icon={Search}
               title="Belum ada keyword"
-              description="Mulai dengan generate 20 keyword teknologi baru menggunakan Groq AI."
+              description="Mulai dengan generate 10 keyword teknologi baru menggunakan Groq AI."
               action={
                 <Button variant="primary" onClick={() => setModalOpen(true)}>
                   Research Keyword Baru
@@ -216,7 +216,7 @@ export default function KeywordsPage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         title="Research Keyword Baru"
-        description="Ini akan generate 20 keyword baru menggunakan Groq AI."
+        description="Ini akan generate 10 keyword baru menggunakan Groq AI."
         confirmLabel="Ya, Research"
         cancelLabel="Batal"
         loading={researching}
