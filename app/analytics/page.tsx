@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload, CheckCircle2, AlertTriangle, Clock, PauseCircle } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload, AlertTriangle, Clock, Search, FileText, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
@@ -271,7 +271,7 @@ export default function AnalyticsPage() {
           </Card>
         </div>
 
-        {/* Auto-pilot status */}
+        {/* Auto-pilot workflow */}
         {cronStatus &&
           (() => {
             const enabled = cronStatus.enabled
@@ -279,87 +279,118 @@ export default function AnalyticsPage() {
             const missing: string[] = []
             if (!cronStatus.configured) missing.push('CRON_SECRET belum diset di server')
             if (!cronStatus.bloggerReady) missing.push('Blogger belum terhubung')
-            const iconClass = !enabled
-              ? 'bg-gray-100 text-gray-500'
-              : ready
-                ? 'bg-green-50 text-green-600'
-                : 'bg-amber-50 text-amber-600'
-            const badgeClass = !enabled
-              ? 'bg-gray-200 text-gray-600'
-              : ready
-                ? 'bg-green-100 text-green-700'
-                : 'bg-amber-100 text-amber-700'
-            const badgeLabel = !enabled ? 'Dihentikan' : ready ? 'Aktif' : 'Belum siap'
+
+            const stepActive = enabled && ready
+            const steps = [
+              {
+                icon: Search,
+                label: 'Riset Keyword',
+                desc: `${stats.keywordsLeft} keyword tersisa`,
+                color: stepActive ? 'bg-violet-50 text-violet-600' : 'bg-gray-100 text-gray-400',
+                ring: stepActive ? 'ring-violet-200' : 'ring-gray-200'
+              },
+              {
+                icon: FileText,
+                label: 'Generate Artikel',
+                desc: `${stats.generated} siap publish`,
+                color: stepActive ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400',
+                ring: stepActive ? 'ring-blue-200' : 'ring-gray-200'
+              },
+              {
+                icon: Send,
+                label: 'Publish ke Blogger',
+                desc: `${stats.bloggerPublished} sudah terbit`,
+                color: stepActive ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-400',
+                ring: stepActive ? 'ring-green-200' : 'ring-gray-200'
+              }
+            ]
+
             return (
               <Card>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${iconClass}`}
-                    >
-                      {!enabled ? (
-                        <PauseCircle className="h-6 w-6" />
-                      ) : ready ? (
-                        <CheckCircle2 className="h-6 w-6" />
-                      ) : (
-                        <AlertTriangle className="h-6 w-6" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold text-gray-900">Auto-pilot</h3>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeClass}`}
-                        >
-                          {badgeLabel}
-                        </span>
-                      </div>
-                      <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
-                        <Clock className="h-4 w-4" />
-                        {cronStatus.scheduleLabel}
-                      </p>
-                      {!ready && (
-                        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-amber-700">
-                          {missing.map((m) => (
-                            <li key={m}>{m}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="sm:text-right">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        loading={toggling && pending === true}
-                        disabled={toggling}
-                        onClick={() => handleToggle(true)}
-                        className="w-full whitespace-nowrap sm:w-auto"
+                {/* Header */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-semibold text-gray-900">Auto-pilot</h3>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          !enabled
+                            ? 'bg-gray-200 text-gray-600'
+                            : ready
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-amber-100 text-amber-700'
+                        }`}
                       >
-                        Aktifkan Auto-pilot
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        loading={toggling && pending === false}
-                        disabled={toggling}
-                        onClick={() => handleToggle(false)}
-                        className="w-full whitespace-nowrap sm:w-auto"
-                      >
-                        Stop Auto-pilot
-                      </Button>
+                        {!enabled ? 'Dihentikan' : ready ? 'Aktif' : 'Belum siap'}
+                      </span>
                     </div>
-                    <p className="mt-1 text-xs text-gray-400">
-                      {enabled
-                        ? 'Auto-pilot aktif — jadwal harian berjalan'
-                        : 'Auto-pilot dihentikan — jadwal harian tidak berjalan'}
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
+                      <Clock className="h-3.5 w-3.5" />
+                      {cronStatus.scheduleLabel}
                     </p>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      loading={toggling && pending === true}
+                      disabled={toggling}
+                      onClick={() => handleToggle(true)}
+                      className="whitespace-nowrap"
+                    >
+                      Aktifkan Auto-pilot
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      loading={toggling && pending === false}
+                      disabled={toggling}
+                      onClick={() => handleToggle(false)}
+                      className="whitespace-nowrap"
+                    >
+                      Stop Auto-pilot
+                    </Button>
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-3 gap-3 border-t border-gray-100 pt-4 text-center">
+                {/* Warning */}
+                {!ready && enabled && (
+                  <div className="mt-3 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                    <ul className="space-y-0.5 text-xs text-amber-700">
+                      {missing.map((m) => <li key={m}>{m}</li>)}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Workflow steps */}
+                <div className="mt-5 flex items-center gap-0">
+                  {steps.map((step, i) => (
+                    <div key={step.label} className="flex flex-1 items-center">
+                      <div className="flex flex-1 flex-col items-center gap-2">
+                        <div
+                          className={`flex h-11 w-11 items-center justify-center rounded-full ring-2 ${step.color} ${step.ring} transition-colors duration-300`}
+                        >
+                          <step.icon className="h-5 w-5" />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-700">{step.label}</p>
+                          <p className="text-xs text-gray-400">{step.desc}</p>
+                        </div>
+                      </div>
+                      {i < steps.length - 1 && (
+                        <div
+                          className={`h-0.5 w-full flex-1 transition-colors duration-300 ${
+                            stepActive ? 'bg-gradient-to-r from-violet-200 via-blue-200 to-green-200' : 'bg-gray-100'
+                          }`}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Stats */}
+                <div className="mt-5 grid grid-cols-3 gap-3 border-t border-gray-100 pt-4 text-center">
                   <div>
                     <p className="text-xs text-gray-400">Terakhir jalan</p>
                     <p className="mt-0.5 text-sm font-medium text-gray-800">
@@ -373,15 +404,11 @@ export default function AnalyticsPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">Total run</p>
-                    <p className="mt-0.5 text-lg font-semibold text-gray-900">
-                      {cronStatus.totalRuns}
-                    </p>
+                    <p className="mt-0.5 text-lg font-semibold text-gray-900">{cronStatus.totalRuns}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">Total terbit</p>
-                    <p className="mt-0.5 text-lg font-semibold text-gray-900">
-                      {cronStatus.totalPublished}
-                    </p>
+                    <p className="mt-0.5 text-lg font-semibold text-gray-900">{cronStatus.totalPublished}</p>
                   </div>
                 </div>
               </Card>
@@ -493,7 +520,13 @@ export default function AnalyticsPage() {
                       <td className="py-3 pr-4 font-medium text-gray-900">{article.title}</td>
                       <td className="py-3 pr-4 text-gray-500">{article.keyword}</td>
                       <td className="py-3 pr-4">
-                        <Badge status={article.status} />
+                        <Badge
+                          status={
+                            article.status === 'generated' && !article.wp_url && !article.blogger_url
+                              ? 'generated_unposted'
+                              : article.status
+                          }
+                        />
                       </td>
                       <td className="py-3 pr-4 text-gray-500">{article.word_count}</td>
                       <td className="py-3 pr-4 text-gray-500">{formatDate(article.created_at)}</td>
@@ -541,7 +574,13 @@ export default function AnalyticsPage() {
                 <li key={article.id} className="rounded-lg border border-gray-100 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <p className="font-medium text-gray-900">{article.title}</p>
-                    <Badge status={article.status} />
+                    <Badge
+                      status={
+                        article.status === 'generated' && !article.wp_url && !article.blogger_url
+                          ? 'generated_unposted'
+                          : article.status
+                      }
+                    />
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
                     {article.keyword} · {article.word_count} kata · {formatDate(article.created_at)}
