@@ -56,10 +56,17 @@ export async function publishToWordPress(article: {
   try {
     data = raw ? JSON.parse(raw) : null
   } catch {
-    const snippet = raw.slice(0, 120).replace(/\s+/g, ' ').trim()
+    const isHtml = raw.trimStart().startsWith('<')
+    if (isHtml) {
+      throw new Error(
+        `REST API WordPress diblokir atau dialihkan (HTTP ${res.status}). ` +
+          `Kemungkinan penyebab: firewall, security plugin, atau redirect loop. ` +
+          `Pastikan REST API aktif dan WP_URL mengarah langsung ke situs WordPress.`
+      )
+    }
+    const snippet = raw.slice(0, 80).replace(/\s+/g, ' ').trim()
     throw new Error(
-      `WordPress mengembalikan respons non-JSON (HTTP ${res.status}). ` +
-        `Cek WP_URL dan pastikan REST API aktif. Cuplikan: ${snippet}`
+      `WordPress mengembalikan respons tidak valid (HTTP ${res.status}): ${snippet}`
     )
   }
 
