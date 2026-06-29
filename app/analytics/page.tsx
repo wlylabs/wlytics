@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload, Power, CheckCircle2, AlertTriangle, Clock, PauseCircle } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload, Play, Square, CheckCircle2, AlertTriangle, Clock, PauseCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
@@ -333,7 +333,11 @@ export default function AnalyticsPage() {
                       onClick={() => handleToggle(!enabled)}
                       className="w-full whitespace-nowrap sm:w-auto"
                     >
-                      <Power className="h-4 w-4" />
+                      {enabled ? (
+                        <Square className="h-4 w-4 fill-current" />
+                      ) : (
+                        <Play className="h-4 w-4 fill-current" />
+                      )}
                       {enabled ? 'Stop Auto-pilot' : 'Aktifkan Auto-pilot'}
                     </Button>
                     <p className="mt-1 text-xs text-gray-400">
