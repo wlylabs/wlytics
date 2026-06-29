@@ -26,5 +26,14 @@ export async function setAutopilotEnabled(enabled: boolean): Promise<void> {
     { key: AUTOPILOT_KEY, value: enabled, updated_at: new Date().toISOString() },
     { onConflict: 'key' }
   )
-  if (error) throw error
+  if (error) {
+    // Supabase errors aren't `Error` instances, so re-wrap them to keep the
+    // real message (e.g. "relation app_settings does not exist") instead of
+    // surfacing a generic "Unknown error" in the UI.
+    const hint =
+      error.code === '42P01'
+        ? ' — tabel app_settings belum ada, jalankan supabase/schema.sql di Supabase'
+        : ''
+    throw new Error(`${error.message}${hint}`)
+  }
 }
