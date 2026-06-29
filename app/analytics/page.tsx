@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload, Play, Square, CheckCircle2, AlertTriangle, Clock, PauseCircle } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload, CheckCircle2, AlertTriangle, Clock, PauseCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
@@ -338,7 +338,6 @@ export default function AnalyticsPage() {
                         onClick={() => handleToggle(true)}
                         className="w-full whitespace-nowrap sm:w-auto"
                       >
-                        <Play className="h-4 w-4 fill-current" />
                         Aktifkan Auto-pilot
                       </Button>
                       <Button
@@ -349,7 +348,6 @@ export default function AnalyticsPage() {
                         onClick={() => handleToggle(false)}
                         className="w-full whitespace-nowrap sm:w-auto"
                       >
-                        <Square className="h-4 w-4 fill-current" />
                         Stop Auto-pilot
                       </Button>
                     </div>
