@@ -84,14 +84,14 @@ export default function ArticlesPage() {
                 onClick={() => setFilter(f.value)}
                 className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-150 active:scale-95 ${
                   active
-                    ? 'bg-violet-600 text-white shadow-sm'
-                    : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
+                    ? 'bg-[#111111] text-white'
+                    : 'bg-white text-[#6B7280] ring-1 ring-gray-200 hover:bg-gray-50'
                 }`}
               >
                 {f.label}
                 <span
                   className={`rounded-full px-1.5 text-xs ${
-                    active ? 'bg-white/20' : 'bg-gray-100 text-gray-500'
+                    active ? 'bg-white/20 text-white' : 'bg-gray-100 text-[#6B7280]'
                   }`}
                 >
                   {counts[f.value]}
@@ -146,12 +146,12 @@ export default function ArticlesPage() {
                   </div>
                 </div>
 
-                <h3 className="mt-3 line-clamp-2 font-semibold text-gray-900">{article.title}</h3>
-                <span className="mt-2 inline-flex w-fit items-center rounded-md bg-gray-50 px-2 py-0.5 text-xs text-gray-500">
+                <h3 className="mt-3 line-clamp-2 text-sm font-semibold text-[#111111]">{article.title}</h3>
+                <span className="mt-2 inline-flex w-fit items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-[#6B7280]">
                   {article.keyword}
                 </span>
 
-                <p className="mt-3 text-sm text-gray-500">
+                <p className="mt-3 text-xs text-[#6B7280]">
                   {article.word_count} kata · {formatDate(article.created_at)}
                 </p>
 

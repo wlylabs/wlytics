@@ -211,64 +211,30 @@ export default function AnalyticsPage() {
     <>
       <Header title="Analytics" subtitle="Statistik produksi konten dari Supabase" />
 
-      <div className="space-y-6 p-4 sm:p-6 lg:space-y-8 lg:p-8">
+      <div className="space-y-5 p-4 sm:p-6">
         {/* Stats overview */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {overviewCards.map((c) => (
-            <Card key={c.label}>
-              <div className="flex items-center gap-2">
-                <span className={`h-2 w-2 rounded-full ${c.dot}`} />
-                <p className="text-sm text-gray-500">{c.label}</p>
-              </div>
-              <p className="mt-2 text-2xl font-semibold tracking-tight text-gray-900">{c.value}</p>
-            </Card>
+            <div key={c.label} className="rounded-2xl border border-gray-100 bg-white p-4">
+              <p className="text-xs text-[#6B7280]">{c.label}</p>
+              <p className="mt-1.5 text-2xl font-semibold tracking-tight text-[#111111]">{c.value}</p>
+            </div>
           ))}
         </div>
 
         {/* Platform stats */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                <Globe className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">WordPress</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {stats.wpPublished}
-                  <span className="ml-1 text-sm font-normal text-gray-400">published</span>
-                </p>
-              </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { icon: Globe, label: 'WordPress', value: stats.wpPublished },
+            { icon: Rss, label: 'Blogger', value: stats.bloggerPublished },
+            { icon: Upload, label: 'Belum publish', value: stats.notPublished },
+          ].map(({ icon: Icon, label, value }) => (
+            <div key={label} className="rounded-2xl border border-gray-100 bg-white p-4">
+              <Icon className="h-4 w-4 text-[#6B7280]" strokeWidth={1.8} />
+              <p className="mt-2 text-xl font-semibold tracking-tight text-[#111111]">{value}</p>
+              <p className="mt-0.5 text-xs text-[#6B7280]">{label}</p>
             </div>
-          </Card>
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
-                <Rss className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Blogger</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {stats.bloggerPublished}
-                  <span className="ml-1 text-sm font-normal text-gray-400">published</span>
-                </p>
-              </div>
-            </div>
-          </Card>
-          <Card>
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-gray-500">
-                <Upload className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Belum publish</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {stats.notPublished}
-                  <span className="ml-1 text-sm font-normal text-gray-400">artikel</span>
-                </p>
-              </div>
-            </div>
-          </Card>
+          ))}
         </div>
 
         {/* Auto-pilot workflow */}
@@ -286,22 +252,22 @@ export default function AnalyticsPage() {
                 icon: Search,
                 label: 'Riset Keyword',
                 desc: `${stats.keywordsLeft} keyword tersisa`,
-                color: stepActive ? 'bg-violet-50 text-violet-600' : 'bg-gray-100 text-gray-400',
-                ring: stepActive ? 'ring-violet-200' : 'ring-gray-200'
+                color: stepActive ? 'bg-[#111111] text-white' : 'bg-gray-100 text-[#9CA3AF]',
+                ring: stepActive ? 'ring-gray-300' : 'ring-gray-200'
               },
               {
                 icon: FileText,
                 label: 'Generate Artikel',
                 desc: `${stats.generated} siap publish`,
-                color: stepActive ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400',
-                ring: stepActive ? 'ring-blue-200' : 'ring-gray-200'
+                color: stepActive ? 'bg-[#111111] text-white' : 'bg-gray-100 text-[#9CA3AF]',
+                ring: stepActive ? 'ring-gray-300' : 'ring-gray-200'
               },
               {
                 icon: Send,
                 label: 'Publish ke Blogger',
                 desc: `${stats.bloggerPublished} sudah terbit`,
-                color: stepActive ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-400',
-                ring: stepActive ? 'ring-green-200' : 'ring-gray-200'
+                color: stepActive ? 'bg-[#111111] text-white' : 'bg-gray-100 text-[#9CA3AF]',
+                ring: stepActive ? 'ring-gray-300' : 'ring-gray-200'
               }
             ]
 
@@ -381,7 +347,7 @@ export default function AnalyticsPage() {
                       {i < steps.length - 1 && (
                         <div
                           className={`h-0.5 w-full flex-1 transition-colors duration-300 ${
-                            stepActive ? 'bg-gradient-to-r from-violet-200 via-blue-200 to-green-200' : 'bg-gray-100'
+                            stepActive ? 'bg-gray-300' : 'bg-gray-100'
                           }`}
                         />
                       )}
