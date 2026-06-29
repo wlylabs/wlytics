@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload, AlertTriangle, Clock, Search, FileText, Send } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload, AlertTriangle, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
@@ -246,31 +246,6 @@ export default function AnalyticsPage() {
             if (!cronStatus.configured) missing.push('CRON_SECRET belum diset di server')
             if (!cronStatus.bloggerReady) missing.push('Blogger belum terhubung')
 
-            const stepActive = enabled && ready
-            const steps = [
-              {
-                icon: Search,
-                label: 'Riset Keyword',
-                desc: `${stats.keywordsLeft} keyword tersisa`,
-                color: stepActive ? 'bg-[#111111] text-white' : 'bg-gray-100 text-[#9CA3AF]',
-                ring: stepActive ? 'ring-gray-300' : 'ring-gray-200'
-              },
-              {
-                icon: FileText,
-                label: 'Generate Artikel',
-                desc: `${stats.generated} siap publish`,
-                color: stepActive ? 'bg-[#111111] text-white' : 'bg-gray-100 text-[#9CA3AF]',
-                ring: stepActive ? 'ring-gray-300' : 'ring-gray-200'
-              },
-              {
-                icon: Send,
-                label: 'Publish ke Blogger',
-                desc: `${stats.bloggerPublished} sudah terbit`,
-                color: stepActive ? 'bg-[#111111] text-white' : 'bg-gray-100 text-[#9CA3AF]',
-                ring: stepActive ? 'ring-gray-300' : 'ring-gray-200'
-              }
-            ]
-
             return (
               <Card>
                 {/* Header */}
@@ -328,32 +303,6 @@ export default function AnalyticsPage() {
                     </ul>
                   </div>
                 )}
-
-                {/* Workflow steps */}
-                <div className="mt-5 flex items-center gap-0">
-                  {steps.map((step, i) => (
-                    <div key={step.label} className="flex flex-1 items-center">
-                      <div className="flex flex-1 flex-col items-center gap-2">
-                        <div
-                          className={`flex h-11 w-11 items-center justify-center rounded-full ring-2 ${step.color} ${step.ring} transition-colors duration-300`}
-                        >
-                          <step.icon className="h-5 w-5" />
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs font-medium text-gray-700">{step.label}</p>
-                          <p className="text-xs text-gray-400">{step.desc}</p>
-                        </div>
-                      </div>
-                      {i < steps.length - 1 && (
-                        <div
-                          className={`h-0.5 w-full flex-1 transition-colors duration-300 ${
-                            stepActive ? 'bg-gray-300' : 'bg-gray-100'
-                          }`}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
 
               </Card>
             )
