@@ -70,6 +70,8 @@ export default function AnalyticsPage() {
   const [cronStatus, setCronStatus] = useState<CronStatusData | null>(null)
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState(false)
+  // Target value of the in-flight toggle, so only the clicked button spins.
+  const [pending, setPending] = useState<boolean | null>(null)
 
   async function loadData() {
     try {
@@ -101,6 +103,7 @@ export default function AnalyticsPage() {
 
   async function handleToggle(enabled: boolean) {
     setToggling(true)
+    setPending(enabled)
     try {
       const res = await fetch('/api/cron/toggle', {
         method: 'POST',
@@ -110,12 +113,12 @@ export default function AnalyticsPage() {
       })
       const json = await res.json()
       if (res.ok && json.success) {
-        // Trust the saved value from the response and update the label
-        // immediately, so the UI never depends on a possibly-cached re-fetch.
         const saved = json.data?.enabled ?? enabled
-        setCronStatus((prev) => (prev ? { ...prev, enabled: saved } : prev))
         toast.success(saved ? 'Auto-pilot diaktifkan' : 'Auto-pilot dihentikan')
+        // Refresh stats first, then make the just-saved value authoritative
+        // for the label so it always reflects the action you clicked.
         await loadData()
+        setCronStatus((prev) => (prev ? { ...prev, enabled: saved } : prev))
       } else {
         toast.error(json.error ?? 'Gagal mengubah status auto-pilot')
       }
@@ -123,6 +126,7 @@ export default function AnalyticsPage() {
       toast.error(err instanceof Error ? err.message : 'Gagal mengubah status auto-pilot')
     } finally {
       setToggling(false)
+      setPending(null)
     }
   }
 
@@ -325,21 +329,30 @@ export default function AnalyticsPage() {
                   </div>
 
                   <div className="sm:text-right">
-                    <Button
-                      variant={enabled ? 'danger' : 'primary'}
-                      size="sm"
-                      loading={toggling}
-                      disabled={toggling}
-                      onClick={() => handleToggle(!enabled)}
-                      className="w-full whitespace-nowrap sm:w-auto"
-                    >
-                      {enabled ? (
-                        <Square className="h-4 w-4 fill-current" />
-                      ) : (
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        loading={toggling && pending === true}
+                        disabled={toggling}
+                        onClick={() => handleToggle(true)}
+                        className="w-full whitespace-nowrap sm:w-auto"
+                      >
                         <Play className="h-4 w-4 fill-current" />
-                      )}
-                      {enabled ? 'Stop Auto-pilot' : 'Aktifkan Auto-pilot'}
-                    </Button>
+                        Aktifkan Auto-pilot
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        loading={toggling && pending === false}
+                        disabled={toggling}
+                        onClick={() => handleToggle(false)}
+                        className="w-full whitespace-nowrap sm:w-auto"
+                      >
+                        <Square className="h-4 w-4 fill-current" />
+                        Stop Auto-pilot
+                      </Button>
+                    </div>
                     <p className="mt-1 text-xs text-gray-400">
                       {enabled
                         ? 'Auto-pilot aktif — jadwal harian berjalan'

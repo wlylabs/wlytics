@@ -15,7 +15,9 @@ export async function isAutopilotEnabled(): Promise<boolean> {
       .eq('key', AUTOPILOT_KEY)
       .maybeSingle()
     if (error || !data) return true
-    return data.value !== false
+    // Tolerate values stored as boolean, string, or number.
+    const v = data.value
+    return v !== false && v !== 'false' && v !== 0 && v !== '0'
   } catch {
     return true
   }
