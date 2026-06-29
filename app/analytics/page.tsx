@@ -131,18 +131,14 @@ export default function AnalyticsPage() {
   }
 
   const stats = useMemo(() => {
-    const published = articles.filter((a) => a.status === 'published').length
     const generated = articles.filter((a) => a.status === 'generated').length
-    const draft = articles.filter((a) => a.status === 'draft').length
     const keywordsUsed = keywords.filter((k) => k.status === 'done').length
     const keywordsLeft = keywords.filter((k) => k.status === 'unused').length
     const wpPublished = articles.filter((a) => a.wp_url).length
     const bloggerPublished = articles.filter((a) => a.blogger_url).length
     const notPublished = articles.filter((a) => !a.wp_url && !a.blogger_url).length
     return {
-      published,
       generated,
-      draft,
       keywordsUsed,
       keywordsLeft,
       wpPublished,
@@ -195,16 +191,10 @@ export default function AnalyticsPage() {
   }
 
   const overviewCards = [
-    { label: 'Artikel Terbit', value: stats.published, dot: 'bg-green-500' },
-    { label: 'Siap Publish', value: stats.generated, dot: 'bg-blue-500' },
-    { label: 'Keyword Dipakai', value: stats.keywordsUsed, dot: 'bg-violet-500' },
-    { label: 'Keyword Tersisa', value: stats.keywordsLeft, dot: 'bg-gray-400' }
-  ]
-
-  const breakdown = [
-    { label: 'Draf', value: stats.draft, bar: 'bg-gray-400' },
-    { label: 'Siap publish', value: stats.generated, bar: 'bg-blue-500' },
-    { label: 'Terbit', value: stats.published, bar: 'bg-green-500' }
+    { label: 'Total Artikel', value: stats.total },
+    { label: 'Siap Publish', value: stats.generated },
+    { label: 'Keyword Dipakai', value: stats.keywordsUsed },
+    { label: 'Keyword Tersisa', value: stats.keywordsLeft }
   ]
 
   return (
@@ -365,28 +355,6 @@ export default function AnalyticsPage() {
               </ul>
             </>
           )}
-        </Card>
-
-        {/* Status breakdown */}
-        <Card title="Status Breakdown">
-          <div className="space-y-4">
-            {breakdown.map((item) => {
-              const pct = stats.total > 0 ? Math.round((item.value / stats.total) * 100) : 0
-              return (
-                <div key={item.label}>
-                  <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">{item.label}</span>
-                    <span className="text-gray-500">
-                      {item.value} artikel · {pct}%
-                    </span>
-                  </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
-                    <div className={`h-full rounded-full ${item.bar}`} style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
         </Card>
 
         {/* Article pipeline table */}
