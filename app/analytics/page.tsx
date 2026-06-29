@@ -355,28 +355,6 @@ export default function AnalyticsPage() {
                   ))}
                 </div>
 
-                {/* Stats */}
-                <div className="mt-5 grid grid-cols-3 gap-3 border-t border-gray-100 pt-4 text-center">
-                  <div>
-                    <p className="text-xs text-gray-400">Terakhir jalan</p>
-                    <p className="mt-0.5 text-sm font-medium text-gray-800">
-                      {cronStatus.lastRun ? formatDateTime(cronStatus.lastRun.run_at) : 'Belum pernah'}
-                    </p>
-                    {cronStatus.lastRun && (
-                      <div className="mt-1 flex justify-center">
-                        <CronStatusBadge status={cronStatus.lastRun.status} />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Total run</p>
-                    <p className="mt-0.5 text-lg font-semibold text-gray-900">{cronStatus.totalRuns}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Total terbit</p>
-                    <p className="mt-0.5 text-lg font-semibold text-gray-900">{cronStatus.totalPublished}</p>
-                  </div>
-                </div>
               </Card>
             )
           })()}
