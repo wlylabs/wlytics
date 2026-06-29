@@ -14,6 +14,7 @@ const CONFIG: Record<string, Conf> = {
   // article
   draft: { label: 'Draf', cls: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' },
   generated: { label: 'Siap publish', cls: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500' },
+  generated_unposted: { label: 'Belum diposting', cls: 'bg-orange-50 text-orange-700', dot: 'bg-orange-400' },
   reviewed: { label: 'Direview', cls: 'bg-purple-50 text-purple-700', dot: 'bg-purple-500' },
   published: { label: 'Terbit', cls: 'bg-green-50 text-green-700', dot: 'bg-green-500' }
 }

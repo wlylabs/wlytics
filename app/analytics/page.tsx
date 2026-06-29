@@ -493,7 +493,13 @@ export default function AnalyticsPage() {
                       <td className="py-3 pr-4 font-medium text-gray-900">{article.title}</td>
                       <td className="py-3 pr-4 text-gray-500">{article.keyword}</td>
                       <td className="py-3 pr-4">
-                        <Badge status={article.status} />
+                        <Badge
+                          status={
+                            article.status === 'generated' && !article.wp_url && !article.blogger_url
+                              ? 'generated_unposted'
+                              : article.status
+                          }
+                        />
                       </td>
                       <td className="py-3 pr-4 text-gray-500">{article.word_count}</td>
                       <td className="py-3 pr-4 text-gray-500">{formatDate(article.created_at)}</td>
@@ -541,7 +547,13 @@ export default function AnalyticsPage() {
                 <li key={article.id} className="rounded-lg border border-gray-100 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <p className="font-medium text-gray-900">{article.title}</p>
-                    <Badge status={article.status} />
+                    <Badge
+                      status={
+                        article.status === 'generated' && !article.wp_url && !article.blogger_url
+                          ? 'generated_unposted'
+                          : article.status
+                      }
+                    />
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
                     {article.keyword} · {article.word_count} kata · {formatDate(article.created_at)}
