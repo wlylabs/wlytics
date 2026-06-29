@@ -74,10 +74,10 @@ export default function AnalyticsPage() {
   async function loadData() {
     try {
       const [articlesRes, keywordsRes, logsRes, statusRes] = await Promise.all([
-        fetch('/api/articles'),
-        fetch('/api/keywords'),
-        fetch('/api/cron/logs'),
-        fetch('/api/cron/status')
+        fetch('/api/articles', { cache: 'no-store' }),
+        fetch('/api/keywords', { cache: 'no-store' }),
+        fetch('/api/cron/logs', { cache: 'no-store' }),
+        fetch('/api/cron/status', { cache: 'no-store' })
       ])
       const articlesJson = await articlesRes.json()
       const keywordsJson = await keywordsRes.json()
@@ -105,11 +105,16 @@ export default function AnalyticsPage() {
       const res = await fetch('/api/cron/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({ enabled })
       })
       const json = await res.json()
       if (res.ok && json.success) {
-        toast.success(enabled ? 'Auto-pilot diaktifkan' : 'Auto-pilot dihentikan')
+        // Trust the saved value from the response and update the label
+        // immediately, so the UI never depends on a possibly-cached re-fetch.
+        const saved = json.data?.enabled ?? enabled
+        setCronStatus((prev) => (prev ? { ...prev, enabled: saved } : prev))
+        toast.success(saved ? 'Auto-pilot diaktifkan' : 'Auto-pilot dihentikan')
         await loadData()
       } else {
         toast.error(json.error ?? 'Gagal mengubah status auto-pilot')
