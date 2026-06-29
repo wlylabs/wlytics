@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload, Play, Power, CheckCircle2, AlertTriangle, Clock, PauseCircle } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload, Power, CheckCircle2, AlertTriangle, Clock, PauseCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
@@ -69,7 +69,6 @@ export default function AnalyticsPage() {
   const [cronLogs, setCronLogs] = useState<CronLog[]>([])
   const [cronStatus, setCronStatus] = useState<CronStatusData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [running, setRunning] = useState(false)
   const [toggling, setToggling] = useState(false)
 
   async function loadData() {
@@ -99,47 +98,6 @@ export default function AnalyticsPage() {
     loadData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  async function handleRunNow() {
-    setRunning(true)
-    try {
-      const res = await fetch('/api/cron/auto-publish', {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET ?? ''}`
-        }
-      })
-
-      // A gateway/timeout returns an HTML page, not JSON — handle that cleanly.
-      if (res.status === 502 || res.status === 503 || res.status === 504) {
-        toast.error(
-          'Proses memakan waktu terlalu lama (limit 60 detik di Vercel). Artikel mungkin tetap terbit — cek Riwayat sebentar lagi.'
-        )
-        await loadData()
-        return
-      }
-
-      const raw = await res.text()
-      let json: { success?: boolean; error?: string }
-      try {
-        json = JSON.parse(raw)
-      } catch {
-        toast.error(`Respons tidak valid (HTTP ${res.status}). Coba lagi atau cek Riwayat.`)
-        await loadData()
-        return
-      }
-
-      if (res.ok && json.success) {
-        toast.success('✅ Auto-pilot berhasil! Artikel baru sudah dipublish ke Blogger')
-        await loadData()
-      } else {
-        toast.error(json.error ?? 'Auto-pilot gagal')
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Auto-pilot gagal')
-    } finally {
-      setRunning(false)
-    }
-  }
 
   async function handleToggle(enabled: boolean) {
     setToggling(true)
@@ -362,47 +320,20 @@ export default function AnalyticsPage() {
                   </div>
 
                   <div className="sm:text-right">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        loading={running}
-                        disabled={running || toggling || !enabled}
-                        onClick={handleRunNow}
-                        className="w-full whitespace-nowrap sm:w-auto"
-                      >
-                        <Play className="h-4 w-4" />
-                        Jalankan Sekarang
-                      </Button>
-                      {enabled ? (
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          loading={toggling}
-                          disabled={toggling || running}
-                          onClick={() => handleToggle(false)}
-                          className="w-full whitespace-nowrap sm:w-auto"
-                        >
-                          <Power className="h-4 w-4" />
-                          Stop Auto-pilot
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          loading={toggling}
-                          disabled={toggling}
-                          onClick={() => handleToggle(true)}
-                          className="w-full whitespace-nowrap sm:w-auto"
-                        >
-                          <Power className="h-4 w-4" />
-                          Aktifkan Auto-pilot
-                        </Button>
-                      )}
-                    </div>
+                    <Button
+                      variant={enabled ? 'danger' : 'primary'}
+                      size="sm"
+                      loading={toggling}
+                      disabled={toggling}
+                      onClick={() => handleToggle(!enabled)}
+                      className="w-full whitespace-nowrap sm:w-auto"
+                    >
+                      <Power className="h-4 w-4" />
+                      {enabled ? 'Stop Auto-pilot' : 'Aktifkan Auto-pilot'}
+                    </Button>
                     <p className="mt-1 text-xs text-gray-400">
                       {enabled
-                        ? '~30–60 detik per artikel'
+                        ? 'Auto-pilot aktif — jadwal harian berjalan'
                         : 'Auto-pilot dihentikan — jadwal harian tidak berjalan'}
                     </p>
                   </div>
