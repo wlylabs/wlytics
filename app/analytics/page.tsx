@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload, Power, CheckCircle2, AlertTriangle, Clock, PauseCircle } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload, Play, Square, CheckCircle2, AlertTriangle, Clock, PauseCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
@@ -74,10 +74,10 @@ export default function AnalyticsPage() {
   async function loadData() {
     try {
       const [articlesRes, keywordsRes, logsRes, statusRes] = await Promise.all([
-        fetch('/api/articles'),
-        fetch('/api/keywords'),
-        fetch('/api/cron/logs'),
-        fetch('/api/cron/status')
+        fetch('/api/articles', { cache: 'no-store' }),
+        fetch('/api/keywords', { cache: 'no-store' }),
+        fetch('/api/cron/logs', { cache: 'no-store' }),
+        fetch('/api/cron/status', { cache: 'no-store' })
       ])
       const articlesJson = await articlesRes.json()
       const keywordsJson = await keywordsRes.json()
@@ -105,11 +105,16 @@ export default function AnalyticsPage() {
       const res = await fetch('/api/cron/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({ enabled })
       })
       const json = await res.json()
       if (res.ok && json.success) {
-        toast.success(enabled ? 'Auto-pilot diaktifkan' : 'Auto-pilot dihentikan')
+        // Trust the saved value from the response and update the label
+        // immediately, so the UI never depends on a possibly-cached re-fetch.
+        const saved = json.data?.enabled ?? enabled
+        setCronStatus((prev) => (prev ? { ...prev, enabled: saved } : prev))
+        toast.success(saved ? 'Auto-pilot diaktifkan' : 'Auto-pilot dihentikan')
         await loadData()
       } else {
         toast.error(json.error ?? 'Gagal mengubah status auto-pilot')
@@ -328,7 +333,11 @@ export default function AnalyticsPage() {
                       onClick={() => handleToggle(!enabled)}
                       className="w-full whitespace-nowrap sm:w-auto"
                     >
-                      <Power className="h-4 w-4" />
+                      {enabled ? (
+                        <Square className="h-4 w-4 fill-current" />
+                      ) : (
+                        <Play className="h-4 w-4 fill-current" />
+                      )}
                       {enabled ? 'Stop Auto-pilot' : 'Aktifkan Auto-pilot'}
                     </Button>
                     <p className="mt-1 text-xs text-gray-400">
