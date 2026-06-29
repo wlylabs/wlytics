@@ -42,13 +42,13 @@ type StreamEvent =
 function StepIcon({ status }: { status: StepStatus }) {
   switch (status) {
     case 'loading':
-      return <Loader2 className="h-5 w-5 animate-spin text-violet-600" />
+      return <Loader2 className="h-5 w-5 animate-spin text-[#111111]" />
     case 'done':
       return <CheckCircle2 className="h-5 w-5 text-green-600" />
     case 'error':
-      return <XCircle className="h-5 w-5 text-red-600" />
+      return <XCircle className="h-5 w-5 text-red-500" />
     default:
-      return <Circle className="h-5 w-5 text-gray-300" />
+      return <Circle className="h-5 w-5 text-gray-200" />
   }
 }
 
@@ -238,22 +238,22 @@ function GenerateContent() {
               <span className="font-medium">Artikel berhasil dibuat</span>
             </div>
 
-            <h2 className="text-xl font-semibold text-gray-900">{result.title}</h2>
-            <p className="mt-2 text-sm text-gray-500">{result.meta_description}</p>
+            <h2 className="text-xl font-semibold text-[#111111]">{result.title}</h2>
+            <p className="mt-2 text-sm text-[#6B7280]">{result.meta_description}</p>
 
             <div className="mt-4 flex flex-wrap gap-2">
               {result.tags?.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600"
+                  className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-[#6B7280]"
                 >
                   #{tag}
                 </span>
               ))}
             </div>
 
-            <p className="mt-4 text-sm text-gray-500">
-              <span className="font-medium text-gray-700">{result.word_count}</span> kata
+            <p className="mt-4 text-sm text-[#6B7280]">
+              <span className="font-medium text-[#111111]">{result.word_count}</span> kata
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -269,27 +269,33 @@ function GenerateContent() {
           <>
             {/* API limit status */}
             {apiStatus && (
-              <Card>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6">
-                  <span className="text-sm font-medium text-gray-700">Status Limit API</span>
+              <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3 sm:px-5">
+                <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#6B7280]">
+                  Status API
+                </p>
+                <div className="flex flex-col gap-2">
                   {(['groq', 'gemini'] as const).map((key) => {
                     const s = apiStatus[key]
-                    const color = s.available
+                    const dot = s.available
                       ? 'bg-green-500'
                       : s.configured
-                        ? 'bg-red-500'
+                        ? 'bg-red-400'
                         : 'bg-gray-300'
-                    const label = key === 'groq' ? 'Groq (utama)' : 'Gemini (cadangan)'
+                    const label = key === 'groq' ? 'Groq' : 'Gemini'
+                    const sub = key === 'groq' ? 'utama' : 'cadangan'
                     return (
-                      <span key={key} className="flex items-center gap-2 text-sm">
-                        <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-                        <span className="font-medium text-gray-800">{label}</span>
-                        <span className="text-gray-400">— {s.message}</span>
-                      </span>
+                      <div key={key} className="flex items-center gap-2.5">
+                        <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+                        <span className="text-sm text-[#111111]">
+                          {label}
+                          <span className="ml-1 text-xs text-[#6B7280]">({sub})</span>
+                        </span>
+                        <span className="ml-auto text-xs text-[#6B7280]">{s.message}</span>
+                      </div>
                     )
                   })}
                 </div>
-              </Card>
+              </div>
             )}
 
             {/* Keyword selector */}
@@ -297,11 +303,11 @@ function GenerateContent() {
               {loadingKeywords ? (
                 <Loader text="Memuat keywords..." />
               ) : keywords.length === 0 ? (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[#6B7280]">
                   Semua keyword sudah dipakai.{' '}
                   <button
                     onClick={() => router.push('/keywords')}
-                    className="font-medium text-violet-600 hover:text-violet-700"
+                    className="font-medium text-[#111111] underline underline-offset-2"
                   >
                     Research keyword baru dulu →
                   </button>
@@ -312,7 +318,7 @@ function GenerateContent() {
                     value={selectedId}
                     onChange={(e) => setSelectedId(e.target.value)}
                     disabled={generating}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 disabled:opacity-50"
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-[#111111] focus:border-[#111111] focus:outline-none focus:ring-1 focus:ring-[#111111] disabled:opacity-50"
                   >
                     <option value="">— Pilih keyword —</option>
                     {keywords.map((kw) => (
@@ -323,15 +329,15 @@ function GenerateContent() {
                   </select>
 
                   {selectedKeyword && (
-                    <div className="mt-4 rounded-lg bg-gray-50 p-4 text-sm">
-                      <p className="font-medium text-gray-900">{selectedKeyword.keyword}</p>
-                      <p className="mt-1 text-gray-500">
+                    <div className="mt-3 rounded-xl bg-gray-50 p-3.5 text-sm">
+                      <p className="font-medium text-[#111111]">{selectedKeyword.keyword}</p>
+                      <p className="mt-1 text-[#6B7280]">
                         Intent:{' '}
-                        <span className="capitalize text-gray-700">{selectedKeyword.intent}</span>
+                        <span className="capitalize text-[#111111]">{selectedKeyword.intent}</span>
                       </p>
-                      <p className="mt-1 text-gray-500">
+                      <p className="mt-1 text-[#6B7280]">
                         Estimasi judul:{' '}
-                        <span className="text-gray-700">{selectedKeyword.estimasi_artikel}</span>
+                        <span className="text-[#111111]">{selectedKeyword.estimasi_artikel}</span>
                       </p>
                     </div>
                   )}
@@ -342,10 +348,8 @@ function GenerateContent() {
             {/* Article type selector */}
             <Card title="Jenis Artikel">
               {suggestedType && (
-                <p className="mb-3 text-xs text-gray-500">
-                  Disarankan otomatis berdasarkan keyword{' '}
-                  {selectedKeyword?.intent ? `(intent ${selectedKeyword.intent})` : ''}. Kamu tetap
-                  bisa mengubahnya.
+                <p className="mb-3 text-xs text-[#6B7280]">
+                  Disarankan otomatis berdasarkan keyword{selectedKeyword?.intent ? ` (intent ${selectedKeyword.intent})` : ''}. Kamu tetap bisa mengubahnya.
                 </p>
               )}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -362,30 +366,30 @@ function GenerateContent() {
                       }}
                       disabled={generating}
                       aria-pressed={isSelected}
-                      className={`rounded-lg border p-4 text-left transition-all duration-150 active:scale-[0.99] disabled:opacity-50 ${
+                      className={`rounded-2xl border p-4 text-left transition-all duration-150 active:scale-[0.99] disabled:opacity-50 ${
                         isSelected
-                          ? 'border-violet-500 bg-violet-50 ring-1 ring-violet-500'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          ? 'border-[#111111] bg-gray-50 ring-1 ring-[#111111]'
+                          : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="flex items-center gap-2 font-medium text-gray-900">
+                        <span className="flex items-center gap-2 font-medium text-[#111111]">
                           {type.label}
                           {isSuggested && (
-                            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-green-700">
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#6B7280]">
                               Disarankan
                             </span>
                           )}
                         </span>
                         <span
                           className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                            isSelected ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600'
+                            isSelected ? 'bg-[#111111] text-white' : 'bg-gray-100 text-[#6B7280]'
                           }`}
                         >
                           {type.wordTarget}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-gray-500">{type.description}</p>
+                      <p className="mt-1 text-xs text-[#6B7280]">{type.description}</p>
                     </button>
                   )
                 })}
@@ -406,14 +410,14 @@ function GenerateContent() {
                         <div className="pt-0.5">
                           <p
                             className={`text-sm font-medium ${
-                              status === 'pending' ? 'text-gray-400' : 'text-gray-800'
+                              status === 'pending' ? 'text-[#6B7280]' : 'text-[#111111]'
                             }`}
                           >
                             {label}
                           </p>
                           <p
                             className={`text-xs ${
-                              status === 'error' ? 'text-red-500' : 'text-gray-400'
+                              status === 'error' ? 'text-red-500' : 'text-[#6B7280]'
                             }`}
                           >
                             {statusText(status)}
@@ -433,7 +437,7 @@ function GenerateContent() {
                   <XCircle className="h-5 w-5" />
                   <span className="font-medium">Gagal generate artikel</span>
                 </div>
-                <p className="mt-2 text-sm text-gray-500">{error}</p>
+                <p className="mt-2 text-sm text-[#6B7280]">{error}</p>
                 <div className="mt-4">
                   <Button variant="secondary" onClick={handleGenerate} disabled={!selectedKeyword}>
                     <RotateCcw className="h-4 w-4" />
@@ -456,7 +460,7 @@ function GenerateContent() {
                 <Sparkles className="h-4 w-4" />
                 {generating ? 'Sedang Generate...' : 'Generate Artikel'}
               </Button>
-              <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-gray-400">
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-[#6B7280]">
                 <Clock className="h-3.5 w-3.5" />
                 Estimasi waktu: 30-60 detik
               </p>
