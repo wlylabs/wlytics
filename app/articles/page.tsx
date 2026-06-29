@@ -15,9 +15,7 @@ type Filter = 'all' | 'draft' | 'generated' | 'published'
 
 const FILTERS: { label: string; value: Filter }[] = [
   { label: 'Semua', value: 'all' },
-  { label: 'Draf', value: 'draft' },
   { label: 'Siap publish', value: 'generated' },
-  { label: 'Terbit', value: 'published' }
 ]
 
 function formatDate(value: string) {
