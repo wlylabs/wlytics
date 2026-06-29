@@ -362,13 +362,14 @@ export default function AnalyticsPage() {
                   </div>
 
                   <div className="sm:text-right">
-                    <div className="flex flex-wrap gap-2 sm:justify-end">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
                       <Button
                         variant="primary"
                         size="sm"
                         loading={running}
                         disabled={running || toggling || !enabled}
                         onClick={handleRunNow}
+                        className="w-full whitespace-nowrap sm:w-auto"
                       >
                         <Play className="h-4 w-4" />
                         Jalankan Sekarang
@@ -380,6 +381,7 @@ export default function AnalyticsPage() {
                           loading={toggling}
                           disabled={toggling || running}
                           onClick={() => handleToggle(false)}
+                          className="w-full whitespace-nowrap sm:w-auto"
                         >
                           <Power className="h-4 w-4" />
                           Stop Auto-pilot
@@ -391,6 +393,7 @@ export default function AnalyticsPage() {
                           loading={toggling}
                           disabled={toggling}
                           onClick={() => handleToggle(true)}
+                          className="w-full whitespace-nowrap sm:w-auto"
                         >
                           <Power className="h-4 w-4" />
                           Aktifkan Auto-pilot
