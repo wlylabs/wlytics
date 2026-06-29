@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload, CheckCircle2, AlertTriangle, Clock, PauseCircle, Search, FileText, Send } from 'lucide-react'
+import { ExternalLink, Globe, Rss, Upload, AlertTriangle, Clock, Search, FileText, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
