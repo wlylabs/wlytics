@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   FileText,
-  CheckCircle,
   Search,
   Sparkles,
   ArrowRight,
@@ -64,7 +63,6 @@ export default function DashboardPage() {
 
   const statCards: StatCard[] = [
     { label: 'Total Artikel', value: stats?.total_articles ?? 0, icon: FileText },
-    { label: 'Terbit', value: stats?.published ?? 0, icon: CheckCircle },
     { label: 'Keyword Tersedia', value: stats?.unused_keywords ?? 0, icon: Search },
   ]
 
@@ -100,7 +98,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {loading
             ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="h-20 animate-pulse rounded-2xl bg-gray-100" />
