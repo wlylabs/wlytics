@@ -23,6 +23,9 @@ const PUBLISHABLE: ArticleStatus[] = ['generated', 'reviewed']
 
 type BloggerInfo = { name?: string; url?: string; posts?: number }
 type BloggerStatus = 'loading' | 'connected' | 'disconnected'
+
+// Persists across in-app navigations so re-visiting the page doesn't flash 'loading'
+let bloggerCache: { status: BloggerStatus; info: BloggerInfo | null } | null = null
 type BulkResult = {
   article_id: string
   status: 'published' | 'skipped' | 'failed'
@@ -46,9 +49,9 @@ export default function PublishPage() {
   const [wpPublishingId, setWpPublishingId] = useState<string | null>(null)
   const [bloggerPublishingId, setBloggerPublishingId] = useState<string | null>(null)
 
-  // Blogger connection
-  const [bloggerStatus, setBloggerStatus] = useState<BloggerStatus>('loading')
-  const [bloggerInfo, setBloggerInfo] = useState<BloggerInfo | null>(null)
+  // Blogger connection — initialise from cache to avoid flash when navigating back
+  const [bloggerStatus, setBloggerStatus] = useState<BloggerStatus>(bloggerCache?.status ?? 'loading')
+  const [bloggerInfo, setBloggerInfo] = useState<BloggerInfo | null>(bloggerCache?.info ?? null)
   const [testing, setTesting] = useState(false)
 
   // Bulk publish
@@ -71,19 +74,23 @@ export default function PublishPage() {
   }
 
   async function checkBlogger(silent = true) {
-    setBloggerStatus('loading')
+    // Only flash loading if user manually triggered or there's no cached result yet
+    if (!silent || !bloggerCache) setBloggerStatus('loading')
     try {
       const res = await fetch('/api/publish/blogger')
       const json = await parseJson<{ success: boolean; data?: BloggerInfo; error?: string }>(res)
       if (json.success && json.data) {
+        bloggerCache = { status: 'connected', info: json.data }
         setBloggerInfo(json.data)
         setBloggerStatus('connected')
         if (!silent) toast.success('Koneksi Blogger OK')
       } else {
+        bloggerCache = { status: 'disconnected', info: null }
         setBloggerStatus('disconnected')
         if (!silent) toast.error(json.error ?? 'Blogger belum terhubung')
       }
     } catch (err) {
+      bloggerCache = { status: 'disconnected', info: null }
       setBloggerStatus('disconnected')
       if (!silent) toast.error(err instanceof Error ? err.message : 'Blogger belum terhubung')
     }
