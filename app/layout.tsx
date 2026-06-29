@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast";
 import Sidebar from "@/components/layout/Sidebar";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
@@ -37,13 +39,33 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-zinc-50 text-gray-900`}
+        className={`${inter.variable} ${geistMono.variable} font-sans antialiased bg-white text-[#111111]`}
       >
         <Sidebar />
-        <div className="flex min-h-screen flex-col pt-14 lg:ml-64 lg:pt-0">
+        {/* pb-16 = clearance for mobile bottom nav; lg:pb-0 removes it on desktop */}
+        <div className="flex min-h-screen flex-col pb-16 lg:ml-64 lg:pb-0">
           <main className="flex-1">{children}</main>
         </div>
-        <Toaster position="top-right" />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: "#111111",
+              color: "#fff",
+              borderRadius: "12px",
+              fontSize: "14px",
+              padding: "12px 16px",
+            },
+            success: {
+              iconTheme: { primary: "#fff", secondary: "#111111" },
+            },
+            error: {
+              style: {
+                background: "#ef4444",
+              },
+            },
+          }}
+        />
       </body>
     </html>
   );

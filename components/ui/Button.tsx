@@ -11,20 +11,18 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary: 'bg-violet-600 hover:bg-violet-700 text-white',
-  secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-800',
-  danger: 'bg-red-600 hover:bg-red-700 text-white',
-  ghost: 'bg-transparent hover:bg-gray-100 text-gray-600'
+  primary:   'bg-[#111111] text-white hover:bg-[#2d2d2d] active:bg-[#111111]',
+  secondary: 'bg-gray-100 text-[#111111] hover:bg-gray-200',
+  danger:    'bg-red-500 text-white hover:bg-red-600',
+  ghost:     'bg-transparent text-[#6B7280] hover:bg-gray-100 hover:text-[#111111]',
 }
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-3 text-base'
+  sm:  'h-9 px-4 text-sm',
+  md:  'h-11 px-5 text-sm',
+  lg:  'h-12 px-6 text-base',
 }
 
-// forwardRef so the component works as a Radix `asChild` trigger/close
-// (e.g. PublishMenu dropdown, ConfirmDialog) — Radix needs the ref.
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { variant = 'primary', size = 'md', loading = false, disabled = false, className = '', children, ...props },
   ref
@@ -35,8 +33,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
     <button
       ref={ref}
       disabled={isDisabled}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-1 ${
-        isDisabled ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
+      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2 ${
+        isDisabled ? 'opacity-40 cursor-not-allowed' : 'active:scale-[0.97]'
       } ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}
     >

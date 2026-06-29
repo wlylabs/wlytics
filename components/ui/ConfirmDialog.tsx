@@ -30,26 +30,32 @@ export default function ConfirmDialog({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out data-[state=open]:fade-in" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/30 duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out data-[state=open]:fade-in" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6 shadow-xl duration-200 focus:outline-none data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
-          onInteractOutside={(e) => {
-            if (loading) e.preventDefault()
-          }}
+          className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-white px-5 pb-10 pt-6 shadow-2xl duration-300 focus:outline-none data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[calc(100%-2rem)] sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:pb-6"
+          onInteractOutside={(e) => { if (loading) e.preventDefault() }}
         >
-          <Dialog.Title className="text-lg font-semibold text-gray-900">{title}</Dialog.Title>
+          {/* Drag handle (mobile) */}
+          <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-gray-200 sm:hidden" />
+
+          <Dialog.Title className="text-base font-semibold text-[#111111]">{title}</Dialog.Title>
           {description && (
-            <Dialog.Description className="mt-2 text-sm text-gray-500">
+            <Dialog.Description className="mt-2 text-sm leading-relaxed text-[#6B7280]">
               {description}
             </Dialog.Description>
           )}
-          <div className="mt-6 flex justify-end gap-3">
+          <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
             <Dialog.Close asChild>
-              <Button variant="secondary" disabled={loading}>
+              <Button variant="secondary" disabled={loading} className="w-full sm:w-auto">
                 {cancelLabel}
               </Button>
             </Dialog.Close>
-            <Button variant={confirmVariant} onClick={onConfirm} loading={loading}>
+            <Button
+              variant={confirmVariant}
+              onClick={onConfirm}
+              loading={loading}
+              className="w-full sm:w-auto"
+            >
               {confirmLabel}
             </Button>
           </div>
