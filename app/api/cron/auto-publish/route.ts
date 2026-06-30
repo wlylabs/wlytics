@@ -5,6 +5,7 @@ import { geminiComplete } from '@/lib/gemini'
 import { PROMPTS } from '@/lib/prompts'
 import { getArticleType, suggestArticleType } from '@/lib/articleTypes'
 import { publishToBlogger } from '@/lib/blogger'
+import { publishToDevto } from '@/lib/devto'
 import { isAutopilotEnabled } from '@/lib/settings'
 import type { Keyword } from '@/types'
 
@@ -42,9 +43,10 @@ export async function GET(req: Request) {
       console.log(`[cron] researched, now ${keywords.length} unused keyword(s)`)
     }
 
-    const articles: { title: string; blogger_url: string | null }[] = []
+    const articles: { title: string; blogger_url: string | null; devto_url: string | null }[] = []
     let generated = 0
-    let published = 0
+    let publishedBlogger = 0
+    let publishedDevto = 0
 
     // 4. Process each keyword.
     for (let i = 0; i < keywords.length; i++) {
@@ -117,23 +119,52 @@ export async function GET(req: Request) {
           keyword: kw.keyword
         })
 
-        // g. mark article published
+        // g. mark article published (Blogger)
+        const bloggerUrl = result.url ?? null
         await supabaseAdmin
           .from('articles')
           .update({
-            blogger_url: result.url,
+            blogger_url: bloggerUrl,
             blogger_post_id: result.id,
             blogger_published_at: new Date().toISOString(),
             status: 'published'
           })
           .eq('id', article.id)
-        published++
+        publishedBlogger++
+        console.log(`[cron]   Blogger done: ${bloggerUrl}`)
 
-        // h. mark keyword done
+        // h. publish to Dev.to (soft-fail — Blogger success is enough)
+        let devtoUrl: string | null = null
+        try {
+          console.log('[cron]   waiting 5s before Dev.to…')
+          await delay(5000)
+          console.log('[cron]   publishing to Dev.to…')
+          const devtoResult = await publishToDevto({
+            title: article.title,
+            content: article.content,
+            tags: article.tags ?? [],
+            canonicalUrl: bloggerUrl ?? undefined
+          })
+          devtoUrl = devtoResult.url
+          await supabaseAdmin
+            .from('articles')
+            .update({
+              devto_url: devtoUrl,
+              devto_post_id: devtoResult.id.toString(),
+              devto_published_at: new Date().toISOString()
+            })
+            .eq('id', article.id)
+          publishedDevto++
+          console.log(`[cron]   Dev.to done: ${devtoUrl}`)
+        } catch (devtoErr) {
+          console.error('[cron]   Dev.to publish failed (non-fatal):', devtoErr)
+        }
+
+        // i. mark keyword done
         await supabaseAdmin.from('keywords').update({ status: 'done' }).eq('id', kw.id)
 
-        articles.push({ title: article.title, blogger_url: result.url ?? null })
-        console.log(`[cron]   done: ${result.url}`)
+        articles.push({ title: article.title, blogger_url: bloggerUrl, devto_url: devtoUrl })
+        console.log(`[cron]   keyword done`)
       } catch (err) {
         // Per-keyword failure: log, revert keyword so it can be retried, continue.
         console.error(`[cron]   FAILED for "${kw.keyword}":`, err)
@@ -147,18 +178,19 @@ export async function GET(req: Request) {
     // 5. Result + log
     const attempted = keywords.length
     const status: 'success' | 'partial' | 'failed' =
-      attempted > 0 && published === attempted
+      attempted > 0 && publishedBlogger === attempted
         ? 'success'
-        : published === 0
+        : publishedBlogger === 0
           ? 'failed'
           : 'partial'
 
-    await logRun({ status, generated, published, articles_data: articles, error_message: null })
+    await logRun({ status, generated, published: publishedBlogger, articles_data: articles, error_message: null })
 
     const payload = {
       success: true,
       generated,
-      published,
+      published_blogger: publishedBlogger,
+      published_devto: publishedDevto,
       articles,
       timestamp: new Date().toISOString()
     }
