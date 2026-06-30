@@ -50,6 +50,9 @@ export interface Article {
   blogger_post_id?: string
   blogger_url?: string
   blogger_published_at?: string
+  devto_post_id?: string
+  devto_url?: string
+  devto_published_at?: string
   word_count: number
   created_at: string
   published_at?: string

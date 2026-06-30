@@ -136,13 +136,15 @@ export default function AnalyticsPage() {
     const keywordsLeft = keywords.filter((k) => k.status === 'unused').length
     const wpPublished = articles.filter((a) => a.wp_url).length
     const bloggerPublished = articles.filter((a) => a.blogger_url).length
-    const notPublished = articles.filter((a) => !a.wp_url && !a.blogger_url).length
+    const devtoPublished = articles.filter((a) => a.devto_url).length
+    const notPublished = articles.filter((a) => !a.wp_url && !a.blogger_url && !a.devto_url).length
     return {
       generated,
       keywordsUsed,
       keywordsLeft,
       wpPublished,
       bloggerPublished,
+      devtoPublished,
       notPublished,
       total: articles.length
     }
@@ -169,6 +171,19 @@ export default function AnalyticsPage() {
           (a, b) =>
             new Date(b.blogger_published_at ?? b.created_at).getTime() -
             new Date(a.blogger_published_at ?? a.created_at).getTime()
+        )
+        .slice(0, 5),
+    [articles]
+  )
+
+  const recentDevtoPosts = useMemo(
+    () =>
+      articles
+        .filter((a) => a.devto_url)
+        .sort(
+          (a, b) =>
+            new Date(b.devto_published_at ?? b.created_at).getTime() -
+            new Date(a.devto_published_at ?? a.created_at).getTime()
         )
         .slice(0, 5),
     [articles]
@@ -213,14 +228,23 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Platform stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
-            { icon: Globe, label: 'WordPress', value: stats.wpPublished },
-            { icon: Rss, label: 'Blogger', value: stats.bloggerPublished },
-            { icon: Upload, label: 'Belum publish', value: stats.notPublished },
-          ].map(({ icon: Icon, label, value }) => (
+            { icon: <Globe className="h-4 w-4 text-[#6B7280]" strokeWidth={1.8} />, label: 'WordPress', value: stats.wpPublished },
+            { icon: <Rss className="h-4 w-4 text-[#6B7280]" strokeWidth={1.8} />, label: 'Blogger', value: stats.bloggerPublished },
+            {
+              icon: (
+                <div className="flex h-4 w-4 items-center justify-center rounded bg-[#111111] text-[9px] font-bold text-white">
+                  D
+                </div>
+              ),
+              label: 'Dev.to',
+              value: stats.devtoPublished
+            },
+            { icon: <Upload className="h-4 w-4 text-[#6B7280]" strokeWidth={1.8} />, label: 'Belum publish', value: stats.notPublished },
+          ].map(({ icon, label, value }) => (
             <div key={label} className="rounded-2xl border border-gray-100 bg-white p-4">
-              <Icon className="h-4 w-4 text-[#6B7280]" strokeWidth={1.8} />
+              {icon}
               <p className="mt-2 text-xl font-semibold tracking-tight text-[#111111]">{value}</p>
               <p className="mt-0.5 text-xs text-[#6B7280]">{label}</p>
             </div>
@@ -372,7 +396,8 @@ export default function AnalyticsPage() {
                     <th className="pb-3 pr-4 font-medium">Word Count</th>
                     <th className="pb-3 pr-4 font-medium">Tanggal</th>
                     <th className="pb-3 pr-4 font-medium">WordPress</th>
-                    <th className="pb-3 font-medium">Blogger</th>
+                    <th className="pb-3 pr-4 font-medium">Blogger</th>
+                    <th className="pb-3 font-medium">Dev.to</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -406,13 +431,28 @@ export default function AnalyticsPage() {
                           <span className="text-gray-300">—</span>
                         )}
                       </td>
-                      <td className="py-3">
+                      <td className="py-3 pr-4">
                         {article.blogger_url ? (
                           <a
                             href={article.blogger_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 font-medium text-orange-600 hover:text-orange-700"
+                          >
+                            Lihat
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
+                      <td className="py-3">
+                        {article.devto_url ? (
+                          <a
+                            href={article.devto_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-medium text-[#111111] hover:text-gray-600"
                           >
                             Lihat
                             <ExternalLink className="h-3.5 w-3.5" />
@@ -467,6 +507,16 @@ export default function AnalyticsPage() {
                         <Rss className="h-3.5 w-3.5" /> Blogger
                       </a>
                     )}
+                    {article.devto_url && (
+                      <a
+                        href={article.devto_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-[#111111] hover:text-gray-600"
+                      >
+                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded bg-[#111111] text-[8px] font-bold text-white">D</span> Dev.to
+                      </a>
+                    )}
                   </div>
                 </li>
               ))}
@@ -499,6 +549,41 @@ export default function AnalyticsPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-orange-600 hover:text-orange-700"
+                    >
+                      Lihat <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        {/* Recent Dev.to posts */}
+        <Card title="Recent Dev.to Posts">
+          {recentDevtoPosts.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-500">
+              Belum ada artikel yang dipublish ke Dev.to.
+            </p>
+          ) : (
+            <ul className="divide-y divide-gray-50">
+              {recentDevtoPosts.map((article) => (
+                <li
+                  key={article.id}
+                  className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-gray-900">{article.title}</p>
+                    <p className="mt-0.5 text-xs text-gray-500">
+                      {formatDateTime(article.devto_published_at ?? article.created_at)}
+                    </p>
+                  </div>
+                  {article.devto_url && (
+                    <a
+                      href={article.devto_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-[#111111] hover:text-gray-600"
                     >
                       Lihat <ExternalLink className="h-3.5 w-3.5" />
                     </a>
