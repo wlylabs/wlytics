@@ -39,6 +39,11 @@ alter table articles add column if not exists blogger_post_id text;
 alter table articles add column if not exists blogger_url text;
 alter table articles add column if not exists blogger_published_at timestamptz;
 
+-- Migration: add Dev.to columns if missing.
+alter table articles add column if not exists devto_post_id text;
+alter table articles add column if not exists devto_url text;
+alter table articles add column if not exists devto_published_at timestamptz;
+
 -- Analytics table
 create table if not exists analytics (
   id uuid default uuid_generate_v4() primary key,
