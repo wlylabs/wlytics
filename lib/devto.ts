@@ -51,6 +51,8 @@ export async function publishToDevto(article: {
   content: string
   tags: string[]
   canonicalUrl?: string
+  featured_image_url?: string
+  featured_image_alt?: string
 }): Promise<{ id: number; url: string; title: string }> {
   const body = {
     article: {
@@ -58,7 +60,8 @@ export async function publishToDevto(article: {
       body_markdown: cleanContent(article.content),
       published: true,
       tags: article.tags.slice(0, 4).map(sanitizeTag).filter(Boolean),
-      ...(article.canonicalUrl ? { canonical_url: article.canonicalUrl } : {})
+      ...(article.canonicalUrl ? { canonical_url: article.canonicalUrl } : {}),
+      ...(article.featured_image_url ? { cover_image: article.featured_image_url } : {})
     }
   }
 

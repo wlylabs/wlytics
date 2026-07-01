@@ -49,7 +49,9 @@ export async function GET(req: Request) {
           title: article.title,
           content: article.content,
           tags: article.tags ?? [],
-          canonicalUrl: article.blogger_url ?? undefined
+          canonicalUrl: article.blogger_url ?? undefined,
+          featured_image_url: article.featured_image_url ?? undefined,
+          featured_image_alt: article.featured_image_alt ?? undefined
         })
 
         await supabaseAdmin

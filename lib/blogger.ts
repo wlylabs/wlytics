@@ -1,26 +1,8 @@
 import { google } from 'googleapis'
 import { markdownToHtml } from '@/lib/markdown'
-import { getFeaturedImage } from '@/lib/images'
 
 function escapeAttr(value: string) {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-function escapeHtml(value: string) {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-// Build a featured-image <figure> with attribution. Blogger uses the first
-// image in the post as its thumbnail.
-function featuredImageHtml(image: NonNullable<Awaited<ReturnType<typeof getFeaturedImage>>>) {
-  const credit = image.creator
-    ? `<figcaption style="font-size:12px;color:#6b7280;margin-top:6px;">Foto: ${escapeHtml(image.creator)}${
-        image.license ? ` (${escapeHtml(image.license)})` : ''
-      }${image.source ? ` via ${escapeHtml(image.source)}` : ''}</figcaption>`
-    : ''
-  return `<figure style="margin:0 0 24px;"><img src="${escapeAttr(image.url)}" alt="${escapeAttr(
-    image.title
-  )}" style="width:100%;height:auto;border-radius:8px;" />${credit}</figure>`
 }
 
 const oauth2Client = new google.auth.OAuth2(
@@ -44,12 +26,17 @@ export async function publishToBlogger(post: {
   tags: string[]
   labels?: string[]
   keyword?: string
+  featured_image_url?: string
+  featured_image_alt?: string
 }) {
   const body = markdownToHtml(post.content)
 
-  // Prepend a relevant featured image (best-effort; never blocks publishing).
-  const image = await getFeaturedImage(post.keyword || post.tags[0] || post.title)
-  const htmlContent = image ? featuredImageHtml(image) + body : body
+  const imageHtml = post.featured_image_url
+    ? `<img src="${escapeAttr(post.featured_image_url)}" alt="${escapeAttr(
+        post.featured_image_alt ?? post.title
+      )}" style="width:100%;max-height:400px;object-fit:cover;border-radius:8px;margin-bottom:20px;" />`
+    : ''
+  const htmlContent = imageHtml + body
 
   const response = await blogger.posts.insert({
     blogId: process.env.BLOGGER_BLOG_ID!,

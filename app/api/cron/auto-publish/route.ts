@@ -114,7 +114,9 @@ export async function GET(req: Request) {
           title: article.title,
           content: article.content,
           tags: article.tags ?? [],
-          keyword: kw.keyword
+          keyword: kw.keyword,
+          featured_image_url: article.featured_image_url ?? undefined,
+          featured_image_alt: article.featured_image_alt ?? undefined
         })
 
         // g. mark article published (Blogger)

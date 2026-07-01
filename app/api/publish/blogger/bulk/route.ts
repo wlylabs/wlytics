@@ -48,7 +48,9 @@ export async function POST(req: Request) {
           title: article.title,
           content: article.content,
           tags: article.tags ?? [],
-          keyword: article.keyword
+          keyword: article.keyword,
+          featured_image_url: article.featured_image_url ?? undefined,
+          featured_image_alt: article.featured_image_alt ?? undefined
         })
 
         // 6. Persist
