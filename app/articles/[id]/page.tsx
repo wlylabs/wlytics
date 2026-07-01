@@ -264,6 +264,16 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Content */}
           <div className="space-y-6 lg:col-span-2">
+            {/* Featured image */}
+            {article.featured_image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={article.featured_image_url}
+                alt={article.featured_image_alt || article.title}
+                className="h-64 w-full rounded-2xl object-cover sm:h-80"
+              />
+            )}
+
             {/* Meta info bar */}
             <Card>
               <div className="grid grid-cols-1 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">

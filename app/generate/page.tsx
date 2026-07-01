@@ -238,6 +238,15 @@ function GenerateContent() {
               <span className="font-medium">Artikel berhasil dibuat</span>
             </div>
 
+            {result.featured_image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={result.featured_image_url}
+                alt={result.featured_image_alt || result.title}
+                className="mb-4 h-48 w-full rounded-2xl object-cover"
+              />
+            )}
+
             <h2 className="text-xl font-semibold text-[#111111]">{result.title}</h2>
             <p className="mt-2 text-sm text-[#6B7280]">{result.meta_description}</p>
 

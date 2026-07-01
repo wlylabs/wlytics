@@ -107,6 +107,16 @@ export default function ArticlesPage() {
                       </div>
                     </div>
 
+                    {article.featured_image_url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={article.featured_image_url}
+                        alt={article.featured_image_alt || article.title}
+                        loading="lazy"
+                        className="mt-3 h-28 w-full rounded-xl object-cover"
+                      />
+                    )}
+
                     <h3 className="mt-3 line-clamp-2 text-sm font-semibold text-[#111111]">{article.title}</h3>
                     <span className="mt-2 inline-flex w-fit items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-[#6B7280]">
                       {article.keyword}
