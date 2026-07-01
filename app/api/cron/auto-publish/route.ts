@@ -6,6 +6,8 @@ import { PROMPTS } from '@/lib/prompts'
 import { getArticleType, suggestArticleType } from '@/lib/articleTypes'
 import { publishToBlogger } from '@/lib/blogger'
 import { getFeaturedImage } from '@/lib/image'
+import { findRelatedArticles } from '@/lib/internal-links'
+import { insertInternalLinks } from '@/lib/insert-links'
 import { isAutopilotEnabled } from '@/lib/settings'
 import type { Keyword } from '@/types'
 
@@ -115,7 +117,26 @@ export async function GET(req: Request) {
         if (insertErr || !article) throw insertErr ?? new Error('Insert failed')
         generated++
 
-        // g. publish to Blogger
+        // g. internal links: best-effort, must never fail the run
+        console.log('[cron]   finding related articles…')
+        try {
+          const related = await findRelatedArticles(kw.keyword, article.id)
+          if (related.length > 0) {
+            const linkedContent = insertInternalLinks(article.content, related)
+            const relatedIds = related.map((r) => r.id)
+            const { error: linkError } = await supabaseAdmin
+              .from('articles')
+              .update({ content: linkedContent, related_article_ids: relatedIds })
+              .eq('id', article.id)
+            if (linkError) throw linkError
+            article.content = linkedContent
+            console.log(`[cron]   inserted ${related.length} internal link(s)`)
+          }
+        } catch (linkErr) {
+          console.error('[cron]   internal linking failed (non-fatal):', linkErr)
+        }
+
+        // h. publish to Blogger (with internal links already in content, if any)
         console.log('[cron]   publishing to Blogger…')
         const result = await publishToBlogger({
           title: article.title,
@@ -126,7 +147,7 @@ export async function GET(req: Request) {
           featured_image_alt: article.featured_image_alt ?? undefined
         })
 
-        // h. mark article published (Blogger)
+        // i. mark article published (Blogger)
         const bloggerUrl = result.url ?? null
         await supabaseAdmin
           .from('articles')
@@ -140,7 +161,7 @@ export async function GET(req: Request) {
         published++
         console.log(`[cron]   Blogger done: ${bloggerUrl}`)
 
-        // i. mark keyword done
+        // j. mark keyword done
         await supabaseAdmin.from('keywords').update({ status: 'done' }).eq('id', kw.id)
 
         articles.push({ title: article.title, blogger_url: bloggerUrl })
