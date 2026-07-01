@@ -48,6 +48,9 @@ alter table articles add column if not exists devto_published_at timestamptz;
 alter table articles add column if not exists featured_image_url text;
 alter table articles add column if not exists featured_image_alt text;
 
+-- Migration: track auto-inserted internal links.
+alter table articles add column if not exists related_article_ids uuid[] default '{}';
+
 -- Analytics table
 create table if not exists analytics (
   id uuid default uuid_generate_v4() primary key,

@@ -4,6 +4,8 @@ import { geminiComplete } from '@/lib/gemini'
 import { PROMPTS } from '@/lib/prompts'
 import { getArticleType } from '@/lib/articleTypes'
 import { getFeaturedImage } from '@/lib/image'
+import { findRelatedArticles } from '@/lib/internal-links'
+import { insertInternalLinks } from '@/lib/insert-links'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -117,6 +119,25 @@ export async function POST(req: Request) {
           .update({ status: 'done' })
           .eq('id', keyword_id)
         send({ type: 'step', index: 3, status: 'done' })
+
+        // Internal links: best-effort, must never fail the pipeline.
+        try {
+          const related = await findRelatedArticles(keyword, data.id)
+          if (related.length > 0) {
+            const linkedContent = insertInternalLinks(data.content, related)
+            const relatedIds = related.map((r) => r.id)
+            const { error: linkError } = await supabaseAdmin
+              .from('articles')
+              .update({ content: linkedContent, related_article_ids: relatedIds })
+              .eq('id', data.id)
+            if (!linkError) {
+              data.content = linkedContent
+              data.related_article_ids = relatedIds
+            }
+          }
+        } catch (linkErr) {
+          console.error('Internal linking failed (non-fatal):', linkErr)
+        }
 
         send({ type: 'done', data })
       } catch (err) {

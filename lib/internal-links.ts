@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase'
 
 export type RelatedArticle = {
+  id: string
   title: string
   slug: string
   blogger_url: string | null
@@ -86,6 +87,7 @@ export async function findRelatedArticles(
       .sort((a, b) => b.score - a.score)
       .slice(0, 3)
       .map(({ article }) => ({
+        id: article.id,
         title: article.title,
         slug: article.slug,
         blogger_url: article.blogger_url,
