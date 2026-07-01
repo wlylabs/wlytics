@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import toast from 'react-hot-toast'
 import { ArrowLeft, ExternalLink, Trash2, Rss, Check, X } from 'lucide-react'
@@ -78,6 +79,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
   const [article, setArticle] = useState<Article | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [relatedArticles, setRelatedArticles] = useState<Article[]>([])
 
   // Editable SEO fields
   const [metaTitle, setMetaTitle] = useState('')
@@ -102,6 +104,16 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
           setSlug(a.slug ?? '')
           setKategori(a.kategori ?? '')
           setTags((a.tags ?? []).join(', '))
+
+          if (a.related_article_ids && a.related_article_ids.length > 0) {
+            const ids = a.related_article_ids
+            const allRes = await fetch('/api/articles', { cache: 'no-store' })
+            const allJson = await allRes.json()
+            if (allJson.success) {
+              const byId = new Map((allJson.data as Article[]).map((x) => [x.id, x]))
+              setRelatedArticles(ids.map((id) => byId.get(id)).filter((x): x is Article => Boolean(x)))
+            }
+          }
         } else {
           setNotFound(true)
         }
@@ -444,6 +456,37 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
             )}
           </div>
         </div>
+
+        {/* Related articles */}
+        {relatedArticles.length > 0 && (
+          <div className="mt-6">
+            <h2 className="mb-3 text-sm font-semibold text-[#111111]">Artikel Terkait</h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {relatedArticles.map((related) => (
+                <Link
+                  key={related.id}
+                  href={`/articles/${related.id}`}
+                  className="group overflow-hidden rounded-2xl border border-gray-100 bg-white transition-colors hover:border-gray-300 hover:bg-gray-50"
+                >
+                  {related.featured_image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={related.featured_image_url}
+                      alt={related.featured_image_alt || related.title}
+                      loading="lazy"
+                      className="h-32 w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-32 w-full bg-gray-100" />
+                  )}
+                  <p className="line-clamp-2 p-3 text-sm font-medium text-[#111111] group-hover:text-gray-700">
+                    {related.title}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <ConfirmDialog
