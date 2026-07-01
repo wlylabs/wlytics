@@ -5,6 +5,7 @@ import { geminiComplete } from '@/lib/gemini'
 import { PROMPTS } from '@/lib/prompts'
 import { getArticleType, suggestArticleType } from '@/lib/articleTypes'
 import { publishToBlogger } from '@/lib/blogger'
+import { getFeaturedImage } from '@/lib/image'
 import { isAutopilotEnabled } from '@/lib/settings'
 import type { Keyword } from '@/types'
 
@@ -86,7 +87,11 @@ export async function GET(req: Request) {
 
         const word_count = content.trim().split(/\s+/).filter(Boolean).length
 
-        // e. save article
+        // e. featured image
+        console.log('[cron]   generating featured image…')
+        const featuredImage = await getFeaturedImage(kw.keyword, meta.meta_title)
+
+        // f. save article
         console.log('[cron]   saving article…')
         const { data: article, error: insertErr } = await supabaseAdmin
           .from('articles')
@@ -101,14 +106,16 @@ export async function GET(req: Request) {
             tags: meta.tags,
             kategori: meta.kategori,
             status: 'generated',
-            word_count
+            word_count,
+            featured_image_url: featuredImage.url,
+            featured_image_alt: featuredImage.alt
           })
           .select()
           .single()
         if (insertErr || !article) throw insertErr ?? new Error('Insert failed')
         generated++
 
-        // f. publish to Blogger
+        // g. publish to Blogger
         console.log('[cron]   publishing to Blogger…')
         const result = await publishToBlogger({
           title: article.title,
@@ -119,7 +126,7 @@ export async function GET(req: Request) {
           featured_image_alt: article.featured_image_alt ?? undefined
         })
 
-        // g. mark article published (Blogger)
+        // h. mark article published (Blogger)
         const bloggerUrl = result.url ?? null
         await supabaseAdmin
           .from('articles')
@@ -133,7 +140,7 @@ export async function GET(req: Request) {
         published++
         console.log(`[cron]   Blogger done: ${bloggerUrl}`)
 
-        // h. mark keyword done
+        // i. mark keyword done
         await supabaseAdmin.from('keywords').update({ status: 'done' }).eq('id', kw.id)
 
         articles.push({ title: article.title, blogger_url: bloggerUrl })
