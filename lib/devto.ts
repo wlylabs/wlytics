@@ -65,12 +65,19 @@ export async function publishToDevto(article: {
     }
   }
 
+  console.log('Cover image URL:', article.featured_image_url)
+
   const res = await devtoFetch('/articles', {
     method: 'POST',
     body: JSON.stringify(body)
   })
 
-  const data = (await res.json()) as { id: number; url: string; title: string }
+  const data = (await res.json()) as { id: number; url: string; title: string; cover_image?: string | null }
+  // Dev.to accepts an invalid/unreachable cover_image URL without erroring —
+  // it just silently omits it. Log what came back so a missing image can be
+  // told apart from a request that never sent one.
+  console.log('Dev.to response cover_image:', data.cover_image ?? null)
+
   return { id: data.id, url: data.url, title: data.title }
 }
 
