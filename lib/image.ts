@@ -17,13 +17,33 @@ const PHRASE_MAP: [string, string][] = [
   ['kamera hp', 'smartphone camera'],
   ['hp android', 'android phone'],
   ['hp lemot', 'slow phone'],
-  ['memori penuh', 'storage full']
+  ['memori penuh', 'storage full'],
+  ['laptop gaming', 'gaming laptop'],
+  ['laptop untuk gaming', 'gaming laptop'],
+  ['laptop buat gaming', 'gaming laptop']
 ]
+
+// Consumer-electronics brand/sub-brand names — dropped rather than kept.
+// Stock photo libraries like Unsplash rarely tag images by specific product
+// brand, so keeping "dell"/"asus" in the query tends to return few or no
+// results; the generic category word (laptop, smartphone, ...) alone matches
+// far more consistently.
+const BRAND_WORDS = new Set([
+  'dell', 'asus', 'acer', 'lenovo', 'msi', 'razer', 'toshiba', 'fujitsu',
+  'axioo', 'advan', 'zyrex', 'vaio',
+  'samsung', 'xiaomi', 'oppo', 'vivo', 'realme', 'huawei', 'infinix',
+  'poco', 'redmi', 'oneplus', 'nokia', 'motorola', 'tecno', 'itel',
+  'apple', 'iphone', 'macbook', 'ipad', 'google', 'pixel', 'sony', 'lg',
+  'rog', 'predator', 'thinkpad', 'ideapad', 'zenbook', 'vivobook',
+  'legion', 'nitro', 'aspire', 'inspiron', 'xps', 'elitebook', 'probook',
+  'pavilion', 'vostro', 'latitude', 'swift', 'spin', 'zenfone', 'galaxy'
+])
 
 // Single-word Indonesian -> English tech vocabulary. Words not found here
 // pass through unchanged (many keywords already contain English terms or
-// brand names like "iPhone", "WhatsApp"). "laptop" maps to a broader
-// "laptop computer" pair for a more specific/reliable Unsplash match.
+// app names like "WhatsApp" — product brand names are handled separately
+// by BRAND_WORDS below). "laptop" maps to a broader "laptop computer" pair
+// for a more specific/reliable Unsplash match.
 const WORD_MAP: Record<string, string> = {
   smartphone: 'smartphone',
   handphone: 'smartphone',
@@ -76,7 +96,8 @@ const STOPWORDS = new Set([
   'biar', 'untuk', 'dengan', 'di', 'ke', 'dari', 'yang', 'adalah', 'itu',
   'ini', 'apa', 'kenapa', 'mengapa', 'bagaimana', 'lengkap', 'mudah',
   'sederhana', 'simple', 'dan', 'atau', 'juga', 'saja', 'paling', 'sangat',
-  'bisa', 'dapat', 'tanpa', 'yuk', 'nih', 'dong', 'sih', 'harga', 'core'
+  'bisa', 'dapat', 'tanpa', 'yuk', 'nih', 'dong', 'sih', 'harga', 'core',
+  'vs', 'versus'
 ])
 
 // Translate an Indonesian keyword into a short English image-search query by
@@ -93,11 +114,11 @@ function translateToQuery(keyword: string): string {
   const words = text
     .split(/\s+/)
     .filter(Boolean)
-    .filter((w) => !STOPWORDS.has(w))
+    .filter((w) => !STOPWORDS.has(w) && !BRAND_WORDS.has(w))
     .map((w) => WORD_MAP[w] ?? w)
 
   const unique = Array.from(new Set(words)).slice(0, 5)
-  return unique.length > 0 ? unique.join(' ') : 'technology'
+  return unique.length > 0 ? unique.join(' ') : 'tech gadget'
 }
 
 // Query the official Unsplash Search API. Returns null (never throws) on a
