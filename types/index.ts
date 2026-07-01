@@ -51,6 +51,8 @@ export interface Article {
   devto_post_id?: string
   devto_url?: string
   devto_published_at?: string
+  featured_image_url?: string
+  featured_image_alt?: string
   word_count: number
   created_at: string
   published_at?: string

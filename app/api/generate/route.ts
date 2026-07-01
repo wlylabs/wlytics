@@ -3,6 +3,7 @@ import { groqComplete, groqFast } from '@/lib/groq'
 import { geminiComplete } from '@/lib/gemini'
 import { PROMPTS } from '@/lib/prompts'
 import { getArticleType } from '@/lib/articleTypes'
+import { getFeaturedImage } from '@/lib/image'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -83,6 +84,9 @@ export async function POST(req: Request) {
         }
         send({ type: 'step', index: 2, status: 'done' })
 
+        // Featured image
+        const featuredImage = await getFeaturedImage(keyword, meta.meta_title)
+
         // Step 4: Save
         current = 3
         send({ type: 'step', index: 3, status: 'loading' })
@@ -100,7 +104,9 @@ export async function POST(req: Request) {
             tags: meta.tags,
             kategori: meta.kategori,
             status: 'generated',
-            word_count
+            word_count,
+            featured_image_url: featuredImage.url,
+            featured_image_alt: featuredImage.alt
           })
           .select()
           .single()

@@ -44,6 +44,10 @@ alter table articles add column if not exists devto_post_id text;
 alter table articles add column if not exists devto_url text;
 alter table articles add column if not exists devto_published_at timestamptz;
 
+-- Migration: add featured image columns if missing.
+alter table articles add column if not exists featured_image_url text;
+alter table articles add column if not exists featured_image_alt text;
+
 -- Analytics table
 create table if not exists analytics (
   id uuid default uuid_generate_v4() primary key,
