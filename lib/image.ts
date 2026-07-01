@@ -22,7 +22,8 @@ const PHRASE_MAP: [string, string][] = [
 
 // Single-word Indonesian -> English tech vocabulary. Words not found here
 // pass through unchanged (many keywords already contain English terms or
-// brand names like "iPhone", "WhatsApp").
+// brand names like "iPhone", "WhatsApp"). "laptop" maps to a broader
+// "laptop computer" pair for a more specific/reliable Unsplash match.
 const WORD_MAP: Record<string, string> = {
   smartphone: 'smartphone',
   handphone: 'smartphone',
@@ -33,7 +34,7 @@ const WORD_MAP: Record<string, string> = {
   menghemat: 'saving',
   internet: 'internet',
   wifi: 'wifi',
-  laptop: 'laptop',
+  laptop: 'laptop computer',
   komputer: 'computer',
   aplikasi: 'app',
   kamera: 'camera',
@@ -50,7 +51,6 @@ const WORD_MAP: Record<string, string> = {
   data: 'data',
   cloud: 'cloud',
   backup: 'backup',
-  harga: 'price',
   murah: 'budget',
   mahal: 'expensive',
   terbaik: 'best',
@@ -69,12 +69,14 @@ const WORD_MAP: Record<string, string> = {
 }
 
 // Instructional/filler words that carry no visual meaning for an image search.
+// "harga" (price) and "core" (as in "core i5") are dropped rather than
+// translated — neither points to something a photo can represent.
 const STOPWORDS = new Set([
   'cara', 'tips', 'trik', 'panduan', 'tutorial', 'langkah', 'agar', 'supaya',
   'biar', 'untuk', 'dengan', 'di', 'ke', 'dari', 'yang', 'adalah', 'itu',
   'ini', 'apa', 'kenapa', 'mengapa', 'bagaimana', 'lengkap', 'mudah',
   'sederhana', 'simple', 'dan', 'atau', 'juga', 'saja', 'paling', 'sangat',
-  'bisa', 'dapat', 'tanpa', 'yuk', 'nih', 'dong', 'sih'
+  'bisa', 'dapat', 'tanpa', 'yuk', 'nih', 'dong', 'sih', 'harga', 'core'
 ])
 
 // Translate an Indonesian keyword into a short English image-search query by
@@ -98,12 +100,29 @@ function translateToQuery(keyword: string): string {
   return unique.length > 0 ? unique.join(' ') : 'technology'
 }
 
-async function isReachable(url: string): Promise<boolean> {
+// Query the official Unsplash Search API. Returns null (never throws) on a
+// missing key, request failure, or no results, so the caller always has a
+// Pollinations fallback to reach for.
+async function searchUnsplash(query: string): Promise<string | null> {
+  const accessKey = process.env.UNSPLASH_ACCESS_KEY
+  if (!accessKey) return null
+
   try {
-    const res = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(5000) })
-    return res.ok
+    const response = await fetch(
+      `https://api.unsplash.com/search/photos?query=${query}&per_page=1&orientation=landscape`,
+      {
+        headers: { Authorization: `Client-ID ${accessKey}` },
+        signal: AbortSignal.timeout(5000)
+      }
+    )
+    if (!response.ok) return null
+
+    const data = (await response.json()) as {
+      results?: Array<{ urls?: { regular?: string } }>
+    }
+    return data.results?.[0]?.urls?.regular ?? null
   } catch {
-    return false
+    return null
   }
 }
 
@@ -114,9 +133,8 @@ export async function getFeaturedImage(
   const searchTerm = translateToQuery(keyword)
   const query = encodeURIComponent(searchTerm)
 
-  const unsplashUrl = `https://source.unsplash.com/1200x630/?${query}`
+  const imageUrl = await searchUnsplash(query)
   const fallbackUrl = `https://image.pollinations.ai/prompt/${query}%20technology%20blog?width=1200&height=630&nologo=true`
 
-  const url = (await isReachable(unsplashUrl)) ? unsplashUrl : fallbackUrl
-  return { url, alt: title }
+  return { url: imageUrl ?? fallbackUrl, alt: title }
 }
