@@ -26,8 +26,8 @@ function styleTables(html: string): string {
 
 // Convert article markdown into clean, semantic HTML for publishing. Uses a real
 // markdown parser (handles lists, tables, hr, blockquotes, links) instead of
-// fragile regex, and removes artifacts that look unprofessional. Shared by the
-// Blogger and WordPress publish paths so every article type renders identically.
+// fragile regex, and removes artifacts that look unprofessional. Used by the
+// Blogger publish path.
 export function markdownToHtml(markdown: string): string {
   const cleaned = markdown
     .replace(/\r\n/g, '\n')

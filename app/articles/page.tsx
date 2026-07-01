@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { FileText, Globe, Rss, Eye } from 'lucide-react'
+import { FileText, Rss, Eye } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
@@ -96,14 +96,6 @@ export default function ArticlesPage() {
                     <div className="flex items-start justify-between gap-3">
                       <Badge status={article.status} />
                       <div className="flex items-center gap-1.5">
-                        {article.wp_url && (
-                          <span
-                            title="Terbit di WordPress"
-                            className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600"
-                          >
-                            <Globe className="h-3.5 w-3.5" />
-                          </span>
-                        )}
                         {article.blogger_url && (
                           <span
                             title="Terbit di Blogger"

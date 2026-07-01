@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     default: "wlytics",
     template: "%s · wlytics",
   },
-  description: "AI-powered content pipeline for tech articles (Groq + Gemini → WordPress)",
+  description: "AI-powered content pipeline for tech articles (Groq + Gemini → Blogger)",
   applicationName: "wlytics",
   openGraph: {
     title: "wlytics",

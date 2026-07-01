@@ -45,8 +45,6 @@ export interface Article {
   tags: string[]
   kategori: string
   status: ArticleStatus
-  wp_post_id?: number
-  wp_url?: string
   blogger_post_id?: string
   blogger_url?: string
   blogger_published_at?: string
