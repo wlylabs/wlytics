@@ -7,6 +7,7 @@ import { getArticleType, suggestArticleType } from '@/lib/articleTypes'
 import { publishToBlogger } from '@/lib/blogger'
 import { publishToDevto } from '@/lib/devto'
 import { isAutopilotEnabled } from '@/lib/settings'
+import { notifyFailure } from '@/lib/notify'
 import type { Keyword } from '@/types'
 
 export const maxDuration = 60
@@ -186,6 +187,16 @@ export async function GET(req: Request) {
 
     await logRun({ status, generated, published: publishedBlogger, articles_data: articles, error_message: null })
 
+    if (status === 'failed') {
+      await notifyFailure(
+        `[wlytics] Cron auto-publish gagal — ${attempted} keyword dicoba, 0 berhasil dipublish ke Blogger.`
+      )
+    } else if (status === 'partial') {
+      await notifyFailure(
+        `[wlytics] Cron auto-publish partial — ${publishedBlogger}/${attempted} keyword berhasil dipublish ke Blogger.`
+      )
+    }
+
     const payload = {
       success: true,
       generated,
@@ -207,6 +218,7 @@ export async function GET(req: Request) {
       articles_data: [],
       error_message: message
     })
+    await notifyFailure(`[wlytics] Cron auto-publish error fatal: ${message}`)
     return NextResponse.json({ success: false, error: message }, { status: 500 })
   }
 }

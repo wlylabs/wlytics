@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast";
-import Sidebar from "@/components/layout/Sidebar";
+import AppShell from "@/components/layout/AppShell";
 import "./globals.css";
 
 const inter = Inter({
@@ -41,11 +41,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${geistMono.variable} font-sans antialiased bg-white text-[#111111]`}
       >
-        <Sidebar />
-        {/* pb-16 = clearance for mobile bottom nav; lg:pb-0 removes it on desktop */}
-        <div className="flex min-h-screen flex-col pb-16 lg:ml-64 lg:pb-0">
-          <main className="flex-1">{children}</main>
-        </div>
+        <AppShell>{children}</AppShell>
         <Toaster
           position="top-center"
           toastOptions={{

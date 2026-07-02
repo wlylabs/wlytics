@@ -75,6 +75,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Variable | Required | Description |
 | --- | --- | --- |
+| `ADMIN_PASSWORD` | Yes | Password checked at `/login` to access the dashboard |
+| `AUTH_SECRET` | Yes | Random secret used to sign the session cookie |
 | `GROQ_API_KEY` | Yes | Groq API key |
 | `GEMINI_API_KEY` | Yes | Gemini API key |
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
@@ -86,8 +88,12 @@ Open [http://localhost:3000](http://localhost:3000).
 | `GROQ_MODEL` | No | Override the large Groq model |
 | `GROQ_FAST_MODEL` | No | Override the fast Groq model |
 | `GEMINI_MODEL` | No | Override the Gemini model |
+| `SLACK_WEBHOOK_URL` | No | Slack incoming webhook — alerts when the cron run fails or partially publishes |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | No | Telegram bot alerting (alternative/addition to Slack) |
 
 > The service-role key bypasses row-level security and must never be exposed to the client.
+>
+> The entire dashboard and all `/api/*` routes (except `/api/cron/*` and `/api/health`) require a logged-in session — see `middleware.ts` and `lib/auth.ts`.
 
 ### Where to get the keys
 
@@ -153,6 +159,7 @@ Each type targets a different length and structure:
 | `npm run build` | Create a production build |
 | `npm run start` | Run the production build |
 | `npm run lint` | Run ESLint |
+| `npm run test` | Run the unit test suite (Vitest) |
 
 ## License
 
