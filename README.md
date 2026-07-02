@@ -114,6 +114,16 @@ Defaults are current production models and can be overridden via environment var
 
 LLM calls retry automatically with exponential backoff on rate limits and transient errors, and fail with a clear message when an API key is missing. If a provider deprecates a model, just update the matching environment variable.
 
+## Auto-pilot (Cron)
+
+`vercel.json` schedules `/api/cron/auto-publish` once a day (`0 1 * * *`, 08:00 WIB). Each run:
+
+1. Reclaims any keyword stuck in `in_progress` from a previous run that got killed mid-flight.
+2. Processes keywords one at a time (outline → article → meta → save → publish) up to `CRON_MAX_PER_RUN` (default 4), stopping early once ~45s have elapsed so the function always returns before Vercel's 60s hard limit. Anything not reached stays `unused` and is picked up on the next run.
+3. Sends a Slack/Telegram alert (if configured — see `SLACK_WEBHOOK_URL` / `TELEGRAM_BOT_TOKEN`) when a run fails or only partially publishes.
+
+**More than one run a day:** Vercel's Hobby plan allows cron jobs to fire at most once a day but permits up to 2 distinct cron jobs. If you're on Hobby and want more daily volume, add a second entry to `vercel.json` pointing at the same path with a different schedule (e.g. `"schedule": "0 13 * * *"` for a second run 12 hours later) — Vercel will reject the deploy if this exceeds your plan's cron job limit, so check `vercel.com/docs/cron-jobs/usage-and-pricing` first. On Pro (or higher), you can instead raise the schedule frequency directly.
+
 ## Article Types
 
 Each type targets a different length and structure:

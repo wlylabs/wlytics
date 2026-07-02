@@ -5,6 +5,7 @@ import { isAutopilotEnabled } from '@/lib/settings'
 export const dynamic = 'force-dynamic'
 
 const SCHEDULE = '0 1 * * *' // daily 01:00 UTC / 08:00 WIB
+const MAX_PER_RUN = Number(process.env.CRON_MAX_PER_RUN) || 4
 
 // Summarizes the auto-pilot: configuration readiness + run stats.
 export async function GET() {
@@ -41,7 +42,8 @@ export async function GET() {
         bloggerReady,
         enabled,
         schedule: SCHEDULE,
-        scheduleLabel: 'Setiap hari 08:00 WIB',
+        scheduleLabel: `Setiap hari 08:00 WIB · hingga ${MAX_PER_RUN} artikel/run`,
+        maxPerRun: MAX_PER_RUN,
         lastRun: lastRows?.[0] ?? null,
         totalRuns: totalRuns ?? 0,
         totalPublished

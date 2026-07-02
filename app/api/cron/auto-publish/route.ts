@@ -15,8 +15,20 @@ export const dynamic = 'force-dynamic'
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-// 1 article per run to stay within the Vercel Hobby 60s function limit.
-const MAX_PER_RUN = 1
+// Ceiling on keywords considered per run. RUN_BUDGET_MS (below) is what
+// actually decides how many get processed — this just bounds the DB fetch.
+const MAX_PER_RUN = Number(process.env.CRON_MAX_PER_RUN) || 4
+
+// Soft deadline for the whole run, leaving ~15s of headroom under Vercel's
+// 60s hard function kill (maxDuration above) for the in-flight keyword to
+// finish and for cleanup/logging. Checked between keywords, not mid-keyword,
+// so a keyword already in progress always runs to completion.
+const RUN_BUDGET_MS = 45_000
+
+// A keyword can be left stuck in 'in_progress' if the function is killed
+// mid-run (e.g. RUN_BUDGET_MS undershoot, cold start, provider outage).
+// Reclaim anything stale so it's retried instead of lost forever.
+const STALE_IN_PROGRESS_MS = 10 * 60 * 1000
 
 export async function GET(req: Request) {
   // 1. Authorize (Vercel Cron sends "Authorization: Bearer <CRON_SECRET>").
@@ -31,12 +43,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ success: true, skipped: true, reason: 'Auto-pilot dihentikan' })
   }
 
+  const startedAt = Date.now()
+
   try {
-    // 2. Get the next unused keyword (oldest first).
+    // 2. Reclaim keywords orphaned by a previous run that got killed mid-flight.
+    await reclaimStaleKeywords()
+
+    // 3. Get the next unused keywords (oldest first).
     let keywords = await fetchUnused()
     console.log(`[cron] found ${keywords.length} unused keyword(s)`)
 
-    // 3. None left -> research a fresh batch, then take 3.
+    // 4. None left -> research a fresh batch, then take some.
     if (keywords.length === 0) {
       console.log('[cron] no unused keywords, researching new batch…')
       await researchKeywords()
@@ -48,14 +65,30 @@ export async function GET(req: Request) {
     let generated = 0
     let publishedBlogger = 0
     let publishedDevto = 0
+    let processed = 0
 
-    // 4. Process each keyword.
+    // 5. Process each keyword, stopping early if the time budget runs out.
     for (let i = 0; i < keywords.length; i++) {
+      if (i > 0) {
+        if (Date.now() - startedAt > RUN_BUDGET_MS) {
+          console.log(
+            `[cron] time budget reached, stopping after ${i}/${keywords.length} keyword(s)`
+          )
+          break
+        }
+        // wait 5s before the next keyword (rate limit)
+        await delay(5000)
+      }
+
       const kw = keywords[i]
+      processed++
       console.log(`[cron] (${i + 1}/${keywords.length}) keyword: "${kw.keyword}"`)
       try {
         // a. mark in progress
-        await supabaseAdmin.from('keywords').update({ status: 'in_progress' }).eq('id', kw.id)
+        await supabaseAdmin
+          .from('keywords')
+          .update({ status: 'in_progress', updated_at: new Date().toISOString() })
+          .eq('id', kw.id)
 
         const type = getArticleType(suggestArticleType(kw.keyword, kw.intent))
 
@@ -162,24 +195,26 @@ export async function GET(req: Request) {
         }
 
         // i. mark keyword done
-        await supabaseAdmin.from('keywords').update({ status: 'done' }).eq('id', kw.id)
+        await supabaseAdmin
+          .from('keywords')
+          .update({ status: 'done', updated_at: new Date().toISOString() })
+          .eq('id', kw.id)
 
         articles.push({ title: article.title, blogger_url: bloggerUrl, devto_url: devtoUrl })
         console.log(`[cron]   keyword done`)
       } catch (err) {
         // Per-keyword failure: log, revert keyword so it can be retried, continue.
         console.error(`[cron]   FAILED for "${kw.keyword}":`, err)
-        await supabaseAdmin.from('keywords').update({ status: 'unused' }).eq('id', kw.id)
+        await supabaseAdmin
+          .from('keywords')
+          .update({ status: 'unused', updated_at: new Date().toISOString() })
+          .eq('id', kw.id)
       }
-
-      // i. wait 5s before the next keyword (rate limit), but not after the last.
-      if (i < keywords.length - 1) await delay(5000)
     }
 
-    // 5. Result + log
-    const attempted = keywords.length
+    // 6. Result + log
     const status: 'success' | 'partial' | 'failed' =
-      attempted > 0 && publishedBlogger === attempted
+      processed > 0 && publishedBlogger === processed
         ? 'success'
         : publishedBlogger === 0
           ? 'failed'
@@ -189,26 +224,29 @@ export async function GET(req: Request) {
 
     if (status === 'failed') {
       await notifyFailure(
-        `[wlytics] Cron auto-publish gagal — ${attempted} keyword dicoba, 0 berhasil dipublish ke Blogger.`
+        `[wlytics] Cron auto-publish gagal — ${processed} keyword dicoba, 0 berhasil dipublish ke Blogger.`
       )
     } else if (status === 'partial') {
       await notifyFailure(
-        `[wlytics] Cron auto-publish partial — ${publishedBlogger}/${attempted} keyword berhasil dipublish ke Blogger.`
+        `[wlytics] Cron auto-publish partial — ${publishedBlogger}/${processed} keyword berhasil dipublish ke Blogger.`
       )
     }
 
     const payload = {
       success: true,
+      fetched: keywords.length,
+      processed,
       generated,
       published_blogger: publishedBlogger,
       published_devto: publishedDevto,
       articles,
+      duration_ms: Date.now() - startedAt,
       timestamp: new Date().toISOString()
     }
     console.log('[cron] finished:', JSON.stringify(payload))
     return NextResponse.json(payload)
   } catch (err) {
-    // 6. Outer failure
+    // 7. Outer failure
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('[cron] fatal error:', message)
     await logRun({
@@ -235,6 +273,16 @@ async function logRun(entry: {
   } catch (err) {
     console.error('[cron] failed to write cron_logs:', err)
   }
+}
+
+async function reclaimStaleKeywords(): Promise<void> {
+  const staleBefore = new Date(Date.now() - STALE_IN_PROGRESS_MS).toISOString()
+  const { error } = await supabaseAdmin
+    .from('keywords')
+    .update({ status: 'unused', updated_at: new Date().toISOString() })
+    .eq('status', 'in_progress')
+    .lt('updated_at', staleBefore)
+  if (error) console.error('[cron] failed to reclaim stale keywords:', error)
 }
 
 async function fetchUnused(): Promise<Keyword[]> {

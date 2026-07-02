@@ -8,8 +8,14 @@ create table if not exists keywords (
   intent text check (intent in ('informational', 'commercial')),
   estimasi_artikel text,
   status text default 'unused' check (status in ('unused', 'in_progress', 'done')),
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
+
+-- Migration for existing databases: track when a keyword's status last
+-- changed, so the cron run can reclaim ones stuck in 'in_progress' after a
+-- killed/crashed invocation.
+alter table keywords add column if not exists updated_at timestamptz default now();
 
 -- Articles table
 create table if not exists articles (
@@ -83,6 +89,7 @@ on conflict (key) do nothing;
 create index if not exists idx_articles_status on articles(status);
 create index if not exists idx_articles_created_at on articles(created_at desc);
 create index if not exists idx_keywords_status on keywords(status);
+create index if not exists idx_keywords_status_updated_at on keywords(status, updated_at);
 create index if not exists idx_cron_logs_run_at on cron_logs(run_at desc);
 
 -- Row Level Security (nonaktifkan untuk development)
