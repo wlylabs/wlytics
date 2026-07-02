@@ -6,7 +6,6 @@ import {
   Upload,
   ExternalLink,
   Rss,
-  Globe,
   CheckCircle2,
   XCircle,
   RefreshCw,
@@ -17,9 +16,7 @@ import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import { parseJson } from '@/lib/http'
-import type { Article, ArticleStatus } from '@/types'
-
-const PUBLISHABLE: ArticleStatus[] = ['generated', 'reviewed']
+import type { Article } from '@/types'
 
 type BloggerInfo = { name?: string; url?: string; posts?: number }
 type BloggerStatus = 'loading' | 'connected' | 'disconnected'
@@ -67,7 +64,6 @@ export default function PublishPage() {
   const [loading, setLoading] = useState(true)
 
   // Per-platform single-publish in-flight ids
-  const [wpPublishingId, setWpPublishingId] = useState<string | null>(null)
   const [bloggerPublishingId, setBloggerPublishingId] = useState<string | null>(null)
   const [devtoPublishingId, setDevtoPublishingId] = useState<string | null>(null)
 
@@ -170,33 +166,10 @@ export default function PublishPage() {
 
   const bloggerEligible = useMemo(() => articles.filter((a) => !a.blogger_url), [articles])
   const devtoEligible = useMemo(() => articles.filter((a) => !a.devto_url), [articles])
-  const wpPublishedCount = useMemo(() => articles.filter((a) => a.wp_url).length, [articles])
   const devtoPublishedCount = useMemo(() => articles.filter((a) => a.devto_url).length, [articles])
 
   function patchArticle(id: string, patch: Partial<Article>) {
     setArticles((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)))
-  }
-
-  async function handleWpPublish(article: Article) {
-    setWpPublishingId(article.id)
-    try {
-      const res = await fetch('/api/publish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ article_id: article.id })
-      })
-      const json = await parseJson<{ success: boolean; wp_url?: string; error?: string }>(res)
-      if (json.success) {
-        toast.success('Artikel dipublish ke WordPress!')
-        patchArticle(article.id, { status: 'published', wp_url: json.wp_url })
-      } else {
-        toast.error(json.error ?? 'Gagal publish ke WordPress')
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Gagal publish ke WordPress')
-    } finally {
-      setWpPublishingId(null)
-    }
   }
 
   async function handleBloggerPublish(article: Article) {
@@ -342,25 +315,12 @@ export default function PublishPage() {
     <>
       <Header
         title="Publish"
-        subtitle="Kirim artikel ke WordPress, Blogger, atau Dev.to"
+        subtitle="Kirim artikel ke Blogger atau Dev.to"
       />
 
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-        {/* Platform cards — 3 columns */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {/* WordPress */}
-          <Card>
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                <Globe className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-semibold text-[#111111]">WordPress</h3>
-                <p className="mt-0.5 text-sm text-[#6B7280]">{wpPublishedCount} terpublish</p>
-              </div>
-            </div>
-          </Card>
-
+        {/* Platform cards — 2 columns */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Blogger */}
           <Card>
             <div className="flex items-start gap-3">
@@ -561,7 +521,6 @@ export default function PublishPage() {
                       </th>
                       <th className="pb-3 pr-4 font-medium">Judul</th>
                       <th className="pb-3 pr-4 font-medium">Status</th>
-                      <th className="pb-3 pr-4 font-medium">WordPress</th>
                       <th className="pb-3 pr-4 font-medium">Blogger</th>
                       <th className="pb-3 font-medium">Dev.to</th>
                     </tr>
@@ -594,24 +553,6 @@ export default function PublishPage() {
                         </td>
                         <td className="py-3 pr-4">
                           <Badge status={article.status} />
-                        </td>
-                        {/* WordPress */}
-                        <td className="py-3 pr-4">
-                          {article.wp_url ? (
-                            <a href={article.wp_url} target="_blank" rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700">
-                              Lihat <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
-                          ) : PUBLISHABLE.includes(article.status) ? (
-                            <Button variant="secondary" size="sm"
-                              loading={wpPublishingId === article.id}
-                              disabled={wpPublishingId === article.id}
-                              onClick={() => handleWpPublish(article)}>
-                              Publish
-                            </Button>
-                          ) : (
-                            <span className="text-gray-300">—</span>
-                          )}
                         </td>
                         {/* Blogger */}
                         <td className="py-3 pr-4">
@@ -669,21 +610,6 @@ export default function PublishPage() {
                     <p className="mt-1 text-xs text-[#6B7280]">{formatDate(article.created_at)}</p>
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {/* WordPress */}
-                      {article.wp_url ? (
-                        <a href={article.wp_url} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-sm font-medium text-blue-600">
-                          <Globe className="h-3.5 w-3.5" /> WP
-                        </a>
-                      ) : PUBLISHABLE.includes(article.status) ? (
-                        <Button variant="secondary" size="sm"
-                          loading={wpPublishingId === article.id}
-                          disabled={wpPublishingId === article.id}
-                          onClick={() => handleWpPublish(article)}>
-                          <Globe className="h-4 w-4" /> WP
-                        </Button>
-                      ) : null}
-
                       {/* Blogger */}
                       {article.blogger_url ? (
                         <a href={article.blogger_url} target="_blank" rel="noopener noreferrer"

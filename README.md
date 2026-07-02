@@ -1,6 +1,6 @@
 # wlytics
 
-An automated dashboard for generating and publishing Indonesian tech articles end to end — from keyword research to a live WordPress post — powered by Groq and Gemini.
+An automated dashboard for generating and publishing Indonesian tech articles end to end — from keyword research to a live Blogger or Dev.to post — powered by Groq and Gemini.
 
 ## Features
 
@@ -8,7 +8,7 @@ An automated dashboard for generating and publishing Indonesian tech articles en
 - **Article generation** — a streaming pipeline (outline → article → SEO meta) across Groq and Gemini, with live per-step progress.
 - **Article types** — choose the format and length target that fits the topic.
 - **Review & edit** — preview articles and edit SEO metadata before publishing.
-- **One-click publishing** — push finished articles to WordPress via the REST API.
+- **One-click publishing** — push finished articles to Blogger or Dev.to via their APIs.
 - **Analytics** — track the content pipeline and publishing status at a glance.
 
 ## Tech Stack
@@ -19,7 +19,7 @@ An automated dashboard for generating and publishing Indonesian tech articles en
 | Styling | Tailwind CSS |
 | Database | Supabase (PostgreSQL) |
 | LLMs | Groq API, Gemini API |
-| Publishing | WordPress REST API |
+| Publishing | Blogger API, Dev.to API |
 
 ## How It Works
 
@@ -30,7 +30,7 @@ Keyword research (Groq)
 Outline (Groq) ──► Article (Gemini) ──► SEO meta (Groq) ──► Save (Supabase)
         │
         ▼
-   Review & edit ──► Publish (WordPress REST API)
+   Review & edit ──► Publish (Blogger / Dev.to)
 ```
 
 The generation endpoint streams newline-delimited JSON so the UI reflects real per-step progress instead of a spinner.
@@ -82,9 +82,6 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service-role key (server only) |
-| `WP_URL` | Yes | WordPress site URL |
-| `WP_USERNAME` | Yes | WordPress username |
-| `WP_APP_PASSWORD` | Yes | WordPress application password |
 | `GROQ_MODEL` | No | Override the large Groq model |
 | `GROQ_FAST_MODEL` | No | Override the fast Groq model |
 | `GEMINI_MODEL` | No | Override the Gemini model |
@@ -100,7 +97,6 @@ Open [http://localhost:3000](http://localhost:3000).
 - **Groq** — https://console.groq.com
 - **Gemini** — https://aistudio.google.com
 - **Supabase** — https://supabase.com (Project Settings → API)
-- **WordPress** — Users → Profile → Application Passwords
 
 ## AI Models
 
@@ -144,7 +140,7 @@ Each type targets a different length and structure:
 │   │   ├── keywords/         # GET list, POST research (Groq)
 │   │   ├── generate/         # POST streaming pipeline (outline → article → meta)
 │   │   ├── articles/         # GET list, PATCH update, [id] GET/DELETE
-│   │   ├── publish/          # POST publish to WordPress
+│   │   ├── publish/          # POST publish to Blogger/Dev.to
 │   │   └── stats/            # GET dashboard stats
 │   ├── keywords/             # Keyword research page
 │   ├── generate/             # Article generation page
@@ -156,7 +152,7 @@ Each type targets a different length and structure:
 ├── components/
 │   ├── layout/               # Sidebar, Header
 │   └── ui/                   # Button, Badge, Card, Loader, EmptyState, ConfirmDialog
-├── lib/                      # Integrations: groq, gemini, supabase, wordpress, prompts, retry, articleTypes
+├── lib/                      # Integrations: groq, gemini, supabase, blogger, devto, prompts, retry, articleTypes
 ├── types/                    # Shared TypeScript types
 └── supabase/                 # schema.sql + database setup guide
 ```

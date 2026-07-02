@@ -36,15 +36,15 @@ export async function POST(req: Request) {
         const outline = await groqComplete(PROMPTS.generate_outline(keyword, type))
         send({ type: 'step', index: 0, status: 'done' })
 
-        // Internal links: existing published articles (WordPress or Blogger).
+        // Internal links: existing published articles (Blogger).
         const { data: publishedRows } = await supabaseAdmin
           .from('articles')
-          .select('title, wp_url, blogger_url')
-          .or('wp_url.not.is.null,blogger_url.not.is.null')
+          .select('title, blogger_url')
+          .not('blogger_url', 'is', null)
           .order('created_at', { ascending: false })
           .limit(15)
         const internalLinks = (publishedRows ?? [])
-          .map((a) => ({ title: a.title as string, url: (a.wp_url ?? a.blogger_url) as string }))
+          .map((a) => ({ title: a.title as string, url: a.blogger_url as string }))
           .filter((l) => l.title && l.url)
 
         // Step 2: Article. Use the fast Groq model (gpt-oss-20b) — higher

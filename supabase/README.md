@@ -9,7 +9,7 @@ Skema database untuk **wlytics**. Folder ini berisi:
 | Tabel | Kegunaan |
 | --- | --- |
 | `keywords` | Daftar keyword hasil research (intent, estimasi artikel, status). |
-| `articles` | Artikel yang digenerate beserta metadata SEO dan info publish WordPress. |
+| `articles` | Artikel yang digenerate beserta metadata SEO dan info publish Blogger/Dev.to. |
 | `analytics` | Metrik performa per artikel (views, clicks, impressions, CTR). |
 
 Plus index pada `articles(status)`, `articles(created_at desc)`, dan `keywords(status)` untuk performa query.

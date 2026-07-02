@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import toast from 'react-hot-toast'
-import { ArrowLeft, ExternalLink, Trash2, Globe, Rss, Check, X } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Trash2, Rss, Check, X } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
@@ -239,19 +239,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
 
           <div className="flex flex-wrap items-center gap-3">
             <Badge status={article.status} />
-            {article.wp_url && (
-              <a
-                href={article.wp_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
-              >
-                <Globe className="h-4 w-4" />
-                WordPress
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            )}
-            {article.blogger_url && (
+            {article.blogger_url ? (
               <a
                 href={article.blogger_url}
                 target="_blank"
@@ -262,8 +250,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
                 Blogger
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
-            )}
-            {!(article.wp_url && article.blogger_url) && (
+            ) : (
               <PublishMenu
                 article={article}
                 size="md"
