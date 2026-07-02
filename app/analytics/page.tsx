@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Globe, Rss, Upload, AlertTriangle, Clock } from 'lucide-react'
+import { ExternalLink, Rss, Upload, AlertTriangle, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Header from '@/components/layout/Header'
 import Card from '@/components/ui/Card'
@@ -134,15 +134,13 @@ export default function AnalyticsPage() {
     const generated = articles.filter((a) => a.status === 'generated').length
     const keywordsUsed = keywords.filter((k) => k.status === 'done').length
     const keywordsLeft = keywords.filter((k) => k.status === 'unused').length
-    const wpPublished = articles.filter((a) => a.wp_url).length
     const bloggerPublished = articles.filter((a) => a.blogger_url).length
     const devtoPublished = articles.filter((a) => a.devto_url).length
-    const notPublished = articles.filter((a) => !a.wp_url && !a.blogger_url && !a.devto_url).length
+    const notPublished = articles.filter((a) => !a.blogger_url && !a.devto_url).length
     return {
       generated,
       keywordsUsed,
       keywordsLeft,
-      wpPublished,
       bloggerPublished,
       devtoPublished,
       notPublished,
@@ -228,9 +226,8 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Platform stats */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
           {[
-            { icon: <Globe className="h-4 w-4 text-[#6B7280]" strokeWidth={1.8} />, label: 'WordPress', value: stats.wpPublished },
             { icon: <Rss className="h-4 w-4 text-[#6B7280]" strokeWidth={1.8} />, label: 'Blogger', value: stats.bloggerPublished },
             {
               icon: (
@@ -395,7 +392,6 @@ export default function AnalyticsPage() {
                     <th className="pb-3 pr-4 font-medium">Status</th>
                     <th className="pb-3 pr-4 font-medium">Word Count</th>
                     <th className="pb-3 pr-4 font-medium">Tanggal</th>
-                    <th className="pb-3 pr-4 font-medium">WordPress</th>
                     <th className="pb-3 pr-4 font-medium">Blogger</th>
                     <th className="pb-3 font-medium">Dev.to</th>
                   </tr>
@@ -408,7 +404,7 @@ export default function AnalyticsPage() {
                       <td className="py-3 pr-4">
                         <Badge
                           status={
-                            article.status === 'generated' && !article.wp_url && !article.blogger_url
+                            article.status === 'generated' && !article.blogger_url
                               ? 'generated_unposted'
                               : article.status
                           }
@@ -416,21 +412,6 @@ export default function AnalyticsPage() {
                       </td>
                       <td className="py-3 pr-4 text-gray-500">{article.word_count}</td>
                       <td className="py-3 pr-4 text-gray-500">{formatDate(article.created_at)}</td>
-                      <td className="py-3 pr-4">
-                        {article.wp_url ? (
-                          <a
-                            href={article.wp_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700"
-                          >
-                            Lihat
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
-                        ) : (
-                          <span className="text-gray-300">—</span>
-                        )}
-                      </td>
                       <td className="py-3 pr-4">
                         {article.blogger_url ? (
                           <a
@@ -477,7 +458,7 @@ export default function AnalyticsPage() {
                     <p className="font-medium text-gray-900">{article.title}</p>
                     <Badge
                       status={
-                        article.status === 'generated' && !article.wp_url && !article.blogger_url
+                        article.status === 'generated' && !article.blogger_url
                           ? 'generated_unposted'
                           : article.status
                       }
@@ -487,16 +468,6 @@ export default function AnalyticsPage() {
                     {article.keyword} · {article.word_count} kata · {formatDate(article.created_at)}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                    {article.wp_url && (
-                      <a
-                        href={article.wp_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
-                      >
-                        <Globe className="h-3.5 w-3.5" /> WordPress
-                      </a>
-                    )}
                     {article.blogger_url && (
                       <a
                         href={article.blogger_url}
