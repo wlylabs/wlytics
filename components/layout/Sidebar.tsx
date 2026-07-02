@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   Sparkles,
@@ -9,6 +9,7 @@ import {
   Upload,
   BarChart2,
   Bot,
+  LogOut,
   type LucideIcon
 } from 'lucide-react'
 
@@ -85,6 +86,26 @@ function BottomNavItem({ href, icon: Icon, label }: NavItem) {
   )
 }
 
+function LogoutButton() {
+  const router = useRouter()
+
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/login')
+    router.refresh()
+  }
+
+  return (
+    <button
+      onClick={handleLogout}
+      className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-[#6B7280] transition-all duration-150 hover:bg-gray-100 hover:text-[#111111] active:scale-[0.98]"
+    >
+      <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
+      Keluar
+    </button>
+  )
+}
+
 export default function Sidebar() {
   return (
     <>
@@ -97,6 +118,9 @@ export default function Sidebar() {
             <DesktopNavItem key={item.href} {...item} />
           ))}
         </nav>
+        <div className="border-t border-gray-100 px-3 py-3">
+          <LogoutButton />
+        </div>
         <div className="border-t border-gray-100 px-6 py-4">
           <p className="text-[11px] text-[#9CA3AF]">© {new Date().getFullYear()} wlytics</p>
         </div>

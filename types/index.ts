@@ -19,6 +19,7 @@ export interface CronStatusData {
   enabled: boolean
   schedule: string
   scheduleLabel: string
+  maxPerRun: number
   lastRun: Pick<CronLog, 'run_at' | 'status' | 'generated' | 'published' | 'error_message'> | null
   totalRuns: number
   totalPublished: number
@@ -31,6 +32,7 @@ export interface Keyword {
   estimasi_artikel: string
   status: KeywordStatus
   created_at: string
+  updated_at?: string
 }
 
 export interface Article {
